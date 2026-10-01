@@ -2330,7 +2330,15 @@ function histStamp() {
   return "[รายงานการปฏิบัติ] " + $("dText").value + " " + $("tText").value + " น.";
 }
 
+// รูปแนบแยกตามหน้า: แต่ละหัวข้อมีรูปของตัวเอง
+var photoStore = {};
+
 function showPage(n) {
+  if (typeof photos !== "undefined" && currentPage && currentPage !== n) {
+    photoStore[currentPage] = photos;     // เก็บรูปของหน้าเดิม
+    photos = photoStore[n] || [];         // เอารูปของหน้าใหม่มาแสดง
+    drawPhotos();
+  }
   currentPage = n;
   $("page1").style.display = (n === 1) ? "block" : "none";
   $("page2").style.display = (n === 2) ? "block" : "none";
@@ -3310,7 +3318,7 @@ function drawThumbs(boxId, removable) {
 
 function drawPhotos() {
   drawThumbs("photoThumbs", true);
-  $("photoCount").textContent = photos.length ? "(" + photos.length + " รูป)" : "ส่งต่อจากข้อความ";
+  $("photoCount").textContent = photos.length ? "(" + photos.length + " รูป · เฉพาะหน้านี้)" : "เฉพาะหน้านี้ · ส่งต่อจากข้อความ";
   $("photoPick").textContent = photos.length ? "เพิ่มรูป" : "เลือกรูป";
 }
 
@@ -3959,7 +3967,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "1 ต.ค. 69 · รุ่นที่ 24";
+var APP_VERSION = "1 ต.ค. 69 · รุ่นที่ 25";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
