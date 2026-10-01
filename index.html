@@ -80,6 +80,13 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--field);border:1p
 #t{text-align:center;color:var(--gold);min-height:22px}
 .h{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .h span{color:var(--mu)}
+.tstat{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:14px}
+.tstat .clock{color:var(--mu)}
+.tstat .tc{font-weight:700}
+.tstat .tc.ok{color:var(--ok)}
+.tstat .tc.no{color:var(--no)}
+.dfmt{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.dfmt .btn{padding:10px 4px;text-align:center}
 .nm2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .nm2 input{width:100%}
 .ranks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -170,35 +177,6 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
   </div>
 </div>
 
-<!-- หน้าต่างเด้ง: ส่งรูปต่อ -->
-<div id="photoPop" class="pop" style="display:none">
-  <div class="popBox">
-    <div class="popTitle">✓ ส่งข้อความแล้ว — ต่อไปส่งรูป</div>
-    <div id="photoPopThumbs" class="thumbs"></div>
-    <p class="hint" id="photoPopHint">กดปุ่มด้านล่าง → แตะ LINE → เลือกกลุ่มเดิม → ส่ง</p>
-    <img id="collagePrev" alt="ตัวอย่างภาพรวม" style="display:none;width:100%;border-radius:10px;margin:8px 0;border:1px solid var(--line)">
-    <button class="go" id="photoShareGo">📷 ส่งรูปเข้า LINE</button>
-    <button class="go alt" id="photoShareSep" style="display:none">ส่งแยกทีละรูป</button>
-    <button class="go alt" id="photoPopClose">ไม่ส่งรูป</button>
-  </div>
-</div>
-
-<!-- หน้าต่างเด้ง: ถึงเวลาส่ง (แบบเลือกแชต) -->
-<div id="pickPop" class="pop" style="display:none">
-  <div class="popBox">
-    <div id="pickWhen" class="popTitle"></div>
-    <pre id="pickText"></pre>
-    <button class="go" id="pickGo">📤 เลือกแชต / กลุ่ม แล้วส่ง</button>
-    <button class="go alt" id="pickLater">ไว้ทีหลัง</button>
-  </div>
-</div>
-
-<!-- แถบเตือนเมื่อมีรายงานถึงเวลาส่ง -->
-<div id="dueBanner" class="due" style="display:none">
-  <span id="dueText">มีรายงานถึงเวลาส่ง</span>
-  <button class="btn small" id="dueGo">ดูรายการ</button>
-</div>
-
 <!-- ===== แท็บเลือกหน้า ===== -->
 <div class="topbar">
   <button class="btn small" id="fontDown" aria-label="ตัวอักษรเล็กลง">ก-</button>
@@ -216,9 +194,8 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
         <li>เปิดฟอร์มจาก<b>ลิงก์ที่ปักไว้ในกลุ่ม</b> (ใต้ปุ่มส่งต้องขึ้น "ส่งตรงเข้าห้องแชตนี้ ✓")</li>
         <li>เลือกแท็บ: รายงานการปฏิบัติ / ตรวจความพร้อม / ตรวจปราการและอินทรี / ตรวจห้องขัง / ส่งรายชื่ออินทรี03</li>
         <li>เลือกรายชื่อ ชป. ว.4 ตามหน้า ข้อความจะขึ้นในกรอบ "ข้อความที่จะส่ง"</li>
-        <li>กด <b>ส่งเข้ากลุ่มนี้ทันที</b> ตรวจข้อความ แล้วกด ตกลง</li>
+        <li>กด <b>📤 ส่งรายงาน</b> ตรวจข้อความ กด ตกลง แล้วเลือกกลุ่มที่จะส่ง</li>
       </ol>
-      <p>อยากส่งแชตอื่น กดปุ่มสีฟ้า <b>เลือกกลุ่ม / แชตอื่นเพื่อส่ง</b></p>
     </details>
 
     <details><summary>เลือกรายชื่อ</summary>
@@ -231,8 +208,9 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 
     <details><summary>วันที่ และเวลา</summary>
       <ul>
-        <li>ติ๊ก <b>ใช้วันเวลาปัจจุบันตอนกดส่ง</b> ไว้ เวลาจะเป็นตอนกดส่งจริง</li>
-        <li>ถ้าพิมพ์เวลาเอง ระบบจะใช้ตามที่พิมพ์</li>
+        <li>เลือกหรือพิมพ์เวลา แล้วกด <b>✓ ใส่เวลานี้ลงรายงาน</b> เวลาจึงจะเข้าไปในรายงาน</li>
+        <li>เวลาที่ใส่แล้วจะจำไว้ แม้ปิดเปิดแอป · อยากเปลี่ยนก็ใส่ใหม่แล้วกดยืนยันอีกครั้ง</li>
+        <li>ปุ่ม <b>ใช้วันที่และเวลาปัจจุบัน</b> = ใส่เวลาตอนนี้ลงรายงานทันที</li>
         <li>▫️ ใช้ซ่อน/แสดงข้อความคงที่ เช่น "เหตุการณ์ทั่วไปปกติ"</li>
       </ul>
     </details>
@@ -245,46 +223,17 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
       </ul>
     </details>
 
-    <details><summary>ส่งรูปพร้อมรายงาน</summary>
-      <ol>
-        <li>การ์ด <b>📷 แนบรูป</b> → <b>เลือกรูป</b> (หลายรูปได้ กด ✕ เอาออก)</li>
-        <li>กดส่งรายงานตามปกติ ข้อความเข้ากลุ่มก่อน</li>
-        <li>หน้าต่าง "ต่อไปส่งรูป" เด้ง → หลายรูปจะ<b>รวมเป็นภาพเดียว</b>ให้ → <b>ส่งรูปรวมเข้า LINE</b> → แตะ LINE → เลือกกลุ่มเดิม → ส่ง</li>
-      </ol>
-      <p>ถ้าเครื่องแชร์รูปไม่ได้ ระบบจะพากลับไปแชตให้ส่งรูปเอง</p>
-    </details>
 
     <details><summary>จบการรายงานครับ</summary>
       <p>ติ๊ก <b>หลังส่งเสร็จ ให้กดส่ง "จบการรายงานครับ"</b> ไว้ ส่งข้อความ (และรูป) ครบแล้ว จะมีปุ่ม <b>✅ จบการรายงานครับ</b> ให้กดส่งปิดท้าย</p>
     </details>
 
-    <details><summary>ตั้งเวลาส่ง</summary>
-      <ul>
-        <li>เปิดการ์ด <b>ตั้งเวลาส่ง</b> → เลือกวัน/เวลา → เลือกวิธี → <b>ตั้งเวลาส่งข้อความนี้</b></li>
-        <li>🔔 แจ้งเตือน: กด <b>เพิ่มลงปฏิทิน iPhone</b> ให้มือถือเตือน</li>
-        <li>📤 เลือกแชต: เปิดฟอร์มค้างไว้ ถึงเวลาจะเปิดหน้าเลือกแชตให้</li>
-        <li>เสียงเตือนดังเมื่อเปิดฟอร์มค้างไว้ ถ้าเปิดโหมดเงียบ ใช้ปุ่ม 🧭 รอใน Safari</li>
-      </ul>
-    </details>
 
     <details><summary>ประวัติการส่ง</summary>
       <p>เปิดการ์ด <b>ประวัติการส่ง</b> → ดูข้อความ → <b>ใช้ซ้ำ</b> (ใส่ข้อมูลเดิม + เวลาปัจจุบัน), ส่งอีกครั้ง, คัดลอก</p>
     </details>
 
-    <details><summary>ย้าย/แชร์ข้อมูลไปเครื่องอื่น</summary>
-      <ol>
-        <li>เครื่องต้นทาง: เปิดการ์ด <b>ย้าย/แชร์ข้อมูล</b> → เลือกสิ่งที่จะส่ง → <b>ส่งทาง LINE</b></li>
-        <li>เครื่องปลายทาง: ก๊อปข้อความที่ได้รับ → เปิดฟอร์ม → การ์ดเดียวกัน → วาง → <b>นำเข้า</b></li>
-      </ol>
-    </details>
 
-    <details><summary>แจ้งเตือนประจำวัน</summary>
-      <ul>
-        <li>เปิดการ์ด <b>แจ้งเตือนประจำวัน</b> → ตั้งหน้าและเวลา → <b>📅 เพิ่มทั้งหมดลงปฏิทิน</b></li>
-        <li>มือถือจะเตือนทุกวัน กดแจ้งเตือนแล้วเปิดลิงก์ ฟอร์มจะไปหน้านั้นเอง</li>
-        <li>เปิดฟอร์มช่วงใกล้เวลาที่ตั้ง ระบบจะเปิดหน้านั้นให้อัตโนมัติ</li>
-      </ul>
-    </details>
 
     <details><summary>แอปบนหน้าจอโฮม</summary>
       <ol>
@@ -336,16 +285,22 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <div class="c">
   <label class="l" for="d">วันนี้ <i>เลือกจากปฏิทิน หรือพิมพ์เองก็ได้</i></label>
   <input type="date" id="d">
+  <div class="dfmt" id="dfmt1"></div>
   <input type="text" id="dText" placeholder="เช่น 29 กันยายน 2569" style="margin-top:8px">
 
   <div class="l">เวลา <i>24 ชั่วโมง เลือกหรือพิมพ์แก้เองก็ได้</i></div>
   <div class="r"><select id="hh"></select><b>:</b><select id="mm"></select></div>
   <div class="timeRow">
     <span class="timeFix">เวลา</span>
-    <input type="text" id="tText" placeholder="เช่น 14.30">
+    <input type="text" id="tText" inputmode="decimal" placeholder="เช่น 14.30">
     <span class="timeFix">น.</span>
   </div>
 
+  <button class="btn on" id="commit1" style="margin-top:10px;width:100%">✓ ใส่เวลานี้ลงรายงาน</button>
+  <div class="tstat">
+    <span class="clock">🕒 ตอนนี้ <b class="liveClock">--.--</b> น.</span>
+    <span id="tcStat1" class="tc">⚠️ ยังไม่ได้ใส่เวลา</span>
+  </div>
   <button class="btn" id="now" style="margin-top:10px">ใช้วันที่และเวลาปัจจุบัน</button>
 </div>
 
@@ -414,16 +369,22 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <div class="c">
   <label class="l" for="d2">วันนี้ <i>เลือกจากปฏิทิน หรือพิมพ์เองก็ได้</i></label>
   <input type="date" id="d2">
+  <div class="dfmt" id="dfmt2"></div>
   <input type="text" id="d2Text" placeholder="เช่น 30/09/69" style="margin-top:8px">
 
   <div class="l">เวลา <i>24 ชั่วโมง เลือกหรือพิมพ์แก้เองก็ได้</i></div>
   <div class="r"><select id="hh2"></select><b>:</b><select id="mm2"></select></div>
   <div class="timeRow">
     <span class="timeFix">เวลา</span>
-    <input type="text" id="t2Text" placeholder="เช่น 08.30">
+    <input type="text" id="t2Text" inputmode="decimal" placeholder="เช่น 08.30">
     <span class="timeFix">น.</span>
   </div>
 
+  <button class="btn on" id="commit2" style="margin-top:10px;width:100%">✓ ใส่เวลานี้ลงรายงาน</button>
+  <div class="tstat">
+    <span class="clock">🕒 ตอนนี้ <b class="liveClock">--.--</b> น.</span>
+    <span id="tcStat2" class="tc">⚠️ ยังไม่ได้ใส่เวลา</span>
+  </div>
   <button class="btn" id="now2" style="margin-top:10px">ใช้วันที่และเวลาปัจจุบัน</button>
 </div>
 
@@ -464,16 +425,22 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <div class="c">
   <label class="l" for="d3">วันนี้ <i>เลือกจากปฏิทิน หรือพิมพ์เองก็ได้</i></label>
   <input type="date" id="d3">
+  <div class="dfmt" id="dfmt3"></div>
   <input type="text" id="d3Text" placeholder="เช่น 30/09/69" style="margin-top:8px">
 
   <div class="l">เวลา <i>24 ชั่วโมง เลือกหรือพิมพ์แก้เองก็ได้</i></div>
   <div class="r"><select id="hh3"></select><b>:</b><select id="mm3"></select></div>
   <div class="timeRow">
     <span class="timeFix">เวลา</span>
-    <input type="text" id="t3Text" placeholder="เช่น 08.40">
+    <input type="text" id="t3Text" inputmode="decimal" placeholder="เช่น 08.40">
     <span class="timeFix">น.</span>
   </div>
 
+  <button class="btn on" id="commit3" style="margin-top:10px;width:100%">✓ ใส่เวลานี้ลงรายงาน</button>
+  <div class="tstat">
+    <span class="clock">🕒 ตอนนี้ <b class="liveClock">--.--</b> น.</span>
+    <span id="tcStat3" class="tc">⚠️ ยังไม่ได้ใส่เวลา</span>
+  </div>
   <button class="btn" id="now3" style="margin-top:10px">ใช้วันที่และเวลาปัจจุบัน</button>
 </div>
 
@@ -504,16 +471,22 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <div class="c">
   <label class="l" for="d4">วันนี้ <i>เลือกจากปฏิทิน หรือพิมพ์เองก็ได้</i></label>
   <input type="date" id="d4">
+  <div class="dfmt" id="dfmt4"></div>
   <input type="text" id="d4Text" placeholder="เช่น 30/09/69" style="margin-top:8px">
 
   <div class="l">เวลา <i>24 ชั่วโมง เลือกหรือพิมพ์แก้เองก็ได้</i></div>
   <div class="r"><select id="hh4"></select><b>:</b><select id="mm4"></select></div>
   <div class="timeRow">
     <span class="timeFix">เวลา</span>
-    <input type="text" id="t4Text" placeholder="เช่น 20.10">
+    <input type="text" id="t4Text" inputmode="decimal" placeholder="เช่น 20.10">
     <span class="timeFix">น.</span>
   </div>
 
+  <button class="btn on" id="commit4" style="margin-top:10px;width:100%">✓ ใส่เวลานี้ลงรายงาน</button>
+  <div class="tstat">
+    <span class="clock">🕒 ตอนนี้ <b class="liveClock">--.--</b> น.</span>
+    <span id="tcStat4" class="tc">⚠️ ยังไม่ได้ใส่เวลา</span>
+  </div>
   <button class="btn" id="now4" style="margin-top:10px">ใช้วันที่และเวลาปัจจุบัน</button>
 </div>
 
@@ -590,57 +563,12 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 
 <div class="l" style="margin:18px 4px 8px;font-size:18px">ข้อความที่จะส่ง</div>
 <pre id="o"></pre>
-<!-- ===== แนบรูป ===== -->
-<div class="c" id="photoCard">
-  <div class="r" style="justify-content:space-between">
-    <div class="l" style="margin:0">📷 แนบรูป <i id="photoCount">ส่งต่อจากข้อความ</i></div>
-    <button class="btn small" id="photoPick">เลือกรูป</button>
-  </div>
-  <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
-  <div id="photoThumbs" class="thumbs"></div>
-  <p class="hint" id="photoSupport"></p>
-</div>
-
-<button class="go" id="sv">ส่งเข้ากลุ่มนี้ทันที</button>
-<button class="go" id="pick" style="background:#2f6fd6">เลือกกลุ่ม / แชตอื่นเพื่อส่ง</button>
+<button class="go" id="pick">📤 ส่งรายงาน <span style="font-weight:400;font-size:14px">(เลือกกลุ่ม)</span></button>
 <button class="go alt" id="cp">คัดลอกข้อความ</button>
-<label class="closeOpt"><input type="checkbox" id="useNow" checked> ใช้วันเวลาปัจจุบันตอนกดส่ง (ถ้าพิมพ์เวลาเองจะไม่เปลี่ยน) 🕒</label>
-<label class="closeOpt"><input type="checkbox" id="finishOn" checked> หลังส่งเสร็จ ให้กดส่ง "จบการรายงานครับ" ✅</label>
+<label class="closeOpt" id="finishRow"><input type="checkbox" id="finishOn" checked> หลังส่งเสร็จ ให้กดส่ง "จบการรายงานครับ" ✅</label>
 <div id="t"></div>
 
-<!-- ===== ตั้งเวลาส่ง ===== -->
-<div class="c fold" id="schedCard" style="margin-top:14px">
-  <div class="foldTop">
-    <button class="foldH" data-fold="sched"><span>ตั้งเวลาส่ง <i id="schedCount"></i></span><span class="arr">▼</span></button>
-  </div>
-  <div class="foldB">
-  <div class="lb2">⏱ ส่งในอีก (นาที) <i>เลือกได้ 1 ปุ่ม · กดซ้ำเพื่อยกเลิก</i></div>
-  <div id="quickMins" class="qm"></div>
-  <p class="hint" id="quickHint" style="margin-top:4px"></p>
-
-  <div class="lb2">วันที่ส่ง</div>
-  <input type="date" id="schedDate">
-  <div class="lb2">เวลาส่ง <i>(เลือกหรือพิมพ์เอง เช่น 14.30)</i></div>
-  <div class="r"><select id="schedHH"></select><b>:</b><select id="schedMM"></select></div>
-  <div class="timeRow">
-    <span class="timeFix">เวลา</span>
-    <input type="text" id="schedTime" inputmode="decimal" placeholder="เช่น 14.30">
-    <span class="timeFix">น.</span>
-  </div>
-  <div class="lb2">เมื่อถึงเวลา</div>
-  <div id="schedModes"></div>
-  <p class="hint" id="schedModeHint"></p>
-  <div class="r" style="margin-top:6px;gap:10px">
-    <label class="closeOpt" style="flex:1;padding:6px 0"><input type="checkbox" id="alarmOn" checked> 🔊 เสียงเตือนเมื่อถึงเวลา</label>
-    <button class="btn small" id="alarmTest">ทดสอบเสียง</button>
-  </div>
-  <button class="btn" id="toSafari" style="margin-top:8px;width:100%">🧭 รอเวลาใน Safari (มีเสียงแม้เปิดโหมดเงียบ)</button>
-  <p class="hint" id="safariHint">ใน LINE ถ้าเปิดโหมดเงียบ เสียงจะไม่ดัง — ตั้งเวลาแล้วกดปุ่มนี้ ย้ายรายการไปรอใน Safari</p>
-  <button class="btn on" id="schedBtn" style="margin-top:8px;width:100%">ตั้งเวลาส่งข้อความนี้</button>
-  <div id="schedList"></div>
-  </div>
-</div>
-<p class="hint" id="mode" style="text-align:center"></p>
+<p class="hint" id="mode" style="display:none"></p>
 
 <!-- ===== ประวัติการส่ง (พับได้) ===== -->
 <div class="c fold" id="fold_hist">
@@ -649,41 +577,6 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
   </div>
   <div class="foldB">
     <div id="hist"></div>
-  </div>
-</div>
-
-<!-- ===== แจ้งเตือนประจำวัน (พับได้) ===== -->
-<div class="c fold" id="fold_daily">
-  <div class="foldTop">
-    <button class="foldH" data-fold="daily"><span>แจ้งเตือนประจำวัน <i id="dailyCount"></i></span><span class="arr">▼</span></button>
-  </div>
-  <div class="foldB">
-    <p class="hint" style="margin-top:0">ตั้งเวลารายงานประจำ แล้วเพิ่มลงปฏิทินแบบ<b>ซ้ำทุกวัน</b> มือถือจะเตือนเองทุกวัน กดแจ้งเตือนเพื่อเปิดฟอร์มหน้านั้น</p>
-    <div id="dailyList"></div>
-    <button class="btn" id="dailyAdd" style="margin-top:8px;width:100%">＋ เพิ่มเวลาแจ้งเตือน</button>
-    <button class="btn on" id="dailyIcsAll" style="margin-top:8px;width:100%">📅 เพิ่มทั้งหมดลงปฏิทิน iPhone (ซ้ำทุกวัน)</button>
-    <label class="closeOpt" style="margin-top:6px"><input type="checkbox" id="autoPage" checked> เปิดฟอร์มช่วงใกล้เวลาเหล่านี้ ให้ไปหน้านั้นอัตโนมัติ (ก่อน 30 นาที – หลัง 1 ชั่วโมง)</label>
-  </div>
-</div>
-
-<!-- ===== ย้าย/แชร์ข้อมูล (พับได้) ===== -->
-<div class="c fold" id="fold_share">
-  <div class="foldTop">
-    <button class="foldH" data-fold="share"><span>ย้าย/แชร์ข้อมูล <i>ไปเครื่องอื่น</i></span><span class="arr">▼</span></button>
-  </div>
-  <div class="foldB">
-    <div class="lb2" style="margin-top:0">📤 ส่งออก: เลือกสิ่งที่จะส่ง</div>
-    <label class="closeOpt"><input type="checkbox" id="exPresets" checked> <span id="exPresetsL">ชุดเวรสำเร็จรูป</span></label>
-    <label class="closeOpt"><input type="checkbox" id="exV4" checked> <span id="exV4L">รายการ ว.4 ที่สร้างเอง</span></label>
-    <label class="closeOpt"><input type="checkbox" id="exHist"> <span id="exHistL">ประวัติการส่ง</span></label>
-    <div class="r" style="margin-top:6px">
-      <button class="btn on" id="exSend" style="flex:1">ส่งทาง LINE</button>
-      <button class="btn" id="exCopy" style="flex:1">คัดลอกรหัส</button>
-    </div>
-
-    <div class="lb2" style="margin-top:16px">📥 นำเข้า: วางข้อความที่ได้รับ</div>
-    <textarea id="imText" rows="3" class="ta" placeholder="วางข้อความที่มีรหัส MUNO1:..."></textarea>
-    <button class="btn on" id="imGo" style="margin-top:8px;width:100%">นำเข้า</button>
   </div>
 </div>
 
@@ -807,13 +700,52 @@ for (var h = 0; h < 24; h++) { $("hh").add(new Option(pad2(h), pad2(h))); }
 for (var m = 0; m < 60; m++) { $("mm").add(new Option(pad2(m), pad2(m))); }
 
 // เลือกวันจากปฏิทิน -> ใส่ข้อความวันที่ภาษาไทยให้อัตโนมัติ
-function dateFromPicker() {
-  var parts = $("d").value.split("-");
-  if (parts.length !== 3) { return; }
-  var day = Number(parts[2]);
-  var month = MONTHS[Number(parts[1]) - 1];
+// ---------- รูปแบบวันที่: เต็ม (1 ตุลาคม 2569) หรือ ย่อ (01/10/69) ----------
+var DATE_IDS = { 1: ["d", "dText"], 2: ["d2", "d2Text"], 3: ["d3", "d3Text"], 4: ["d4", "d4Text"] };
+var dateFmt = { 1: "full", 2: "short", 3: "short", 4: "short" };
+try {
+  var dfSaved = JSON.parse(localStorage.getItem("dateFmt") || "null");
+  if (dfSaved) { for (var dk in dfSaved) { dateFmt[dk] = dfSaved[dk]; } }
+} catch (e) {}
+
+// แปลงค่าจากปฏิทิน (2026-10-01) เป็นข้อความตามรูปแบบที่เลือก
+function formatDateParts(parts, fmt) {
   var yearBE = Number(parts[0]) + 543;
-  $("dText").value = day + " " + month + " " + yearBE;
+  if (fmt === "short") {
+    return parts[2] + "/" + parts[1] + "/" + String(yearBE).slice(-2);          // 01/10/69
+  }
+  return Number(parts[2]) + " " + MONTHS[Number(parts[1]) - 1] + " " + yearBE;   // 1 ตุลาคม 2569
+}
+
+function fillDateText(page) {
+  var parts = $(DATE_IDS[page][0]).value.split("-");
+  if (parts.length !== 3) { return; }
+  $(DATE_IDS[page][1]).value = formatDateParts(parts, dateFmt[page]);
+  if (typeof refreshDateFmtLabels === "function") { refreshDateFmtLabels(); }
+}
+
+function drawDateFmt(page) {
+  var box = $("dfmt" + page);
+  box.innerHTML = "";
+  var opts = [["full", "1 ตุลาคม 2569"], ["short", "01/10/69"]];
+  for (var i = 0; i < opts.length; i++) {
+    var b = document.createElement("button");
+    b.className = "btn" + (dateFmt[page] === opts[i][0] ? " on" : "");
+    b.textContent = (dateFmt[page] === opts[i][0] ? "☑️ " : "") + opts[i][1];
+    b.setAttribute("data-f", opts[i][0]);
+    b.onclick = function () {
+      dateFmt[page] = this.getAttribute("data-f");
+      try { localStorage.setItem("dateFmt", JSON.stringify(dateFmt)); } catch (e) {}
+      drawDateFmt(page);
+      fillDateText(page);
+      update();
+    };
+    box.appendChild(b);
+  }
+}
+
+function dateFromPicker() {
+  fillDateText(1);
   update();
 }
 
@@ -1344,7 +1276,7 @@ function buildMessage1() {
   lines.push("สภ.มูโนะ");                 // ข้อความคงที่ (ไม่แสดงในฟอร์ม)
   lines.push("เรียนผู้บังคับบัญชา");        // ข้อความคงที่ (ไม่แสดงในฟอร์ม)
   lines.push("วันนี้ " + ($("dText").value.trim() || "-"));
-  lines.push("เวลา " + ($("tText").value.trim() || "-") + " น.");   // "เวลา" และ "น." คงที่ ตรงกลางพิมพ์แก้ได้
+  lines.push("เวลา " + (getCommittedTime(1) || "-") + " น.");   // ใช้เวลาที่กดยืนยันแล้ว
 
   if (show.cmd) { lines.push("ภายใต้อำนวยการของ"); }
 
@@ -1407,8 +1339,6 @@ function startLiff() {
   liff.init({ liffId: LIFF_ID })
     .then(function () {
       liffReady = true;
-      setTimeout(checkDue, 1000);   // เปิดหน้ามาแล้วมีรายการถึงเวลา ส่ง/เตือนเลย
-      updateSafariHint();
       var pu = pageFromUrl();
       if (pu && pu !== currentPage) { showPage(pu); }
       if (canSendDirect()) {
@@ -1473,10 +1403,7 @@ document.addEventListener("visibilitychange", function () {
 
 // หลังส่งข้อความสำเร็จ: มีรูป -> ส่งรูปต่อ / ไม่มีรูป -> ถาม "จบการรายงานครับ"
 function afterSent(isDirect) {
-  if (photos.length > 0 && currentPage !== 5) {   // อินทรี03 ไม่ส่งรูป
-    showPhotoPopup();
-    return;
-  }
+  if (currentPage === 5) { return; }   // ส่งรายชื่ออินทรี03 ไม่ต้องส่ง "จบการรายงานครับ"
   if ($("finishOn").checked) { showFinishPopup(); }
 }
 
@@ -1558,7 +1485,7 @@ function drawHistory() {
     again.onclick = function () {
       var h = hist[Number(this.getAttribute("data-i"))];
       if (!confirmSend(h.t)) { return; }
-      sendLine(h.t);
+      sendByPicker(h.t);
     };
     btns.appendChild(again);
 
@@ -1632,27 +1559,12 @@ function saveHistory(text, state, page, stamp) {
   drawHistory();
 }
 
-// ปุ่ม 1: ส่งเข้ากลุ่มที่เปิดลิงก์อยู่ทันที
 // ถามยืนยันก่อนส่ง พร้อมให้ดูข้อความ
 function confirmSend(text) {
-  return confirm("ตรวจข้อความก่อนส่ง\n\n" + text + "\n\nกด ตกลง เพื่อส่ง");
+  return confirm("ตรวจข้อความก่อนส่ง\n\n" + text + "\n\nกด ตกลง แล้วเลือกกลุ่มที่จะส่ง");
 }
 
-$("sv").onclick = function () {
-  if (!checkForm()) { return; }
-  refreshTimeBeforeSend();
-  var text = buildMessage();
-  if (!confirmSend(text)) { return; }
-  saveHistory(text, getPageState());
-  if (canSendDirect()) {
-    sendLine(text);   // ส่งตรง (ถ้าพลาดจะเปิดหน้าเลือกกลุ่มให้เอง)
-  } else {
-    toast("ส่งทันทีได้เมื่อเปิดลิงก์จากในกลุ่ม — เปิดหน้าเลือกกลุ่มแทน");
-    sendByPicker(text);
-  }
-};
-
-// ปุ่ม 2: เลือกกลุ่ม / แชตอื่นเอง
+// ปุ่ม "ส่งรายงาน": เลือกกลุ่มแล้วส่ง
 $("pick").onclick = function () {
   if (!checkForm()) { return; }
   refreshTimeBeforeSend();
@@ -1688,10 +1600,7 @@ for (var m2 = 0; m2 < 60; m2++) { $("mm2").add(new Option(pad2(m2), pad2(m2))); 
 
 // วันที่แบบย่อ เช่น 30/09/69
 function date2FromPicker() {
-  var parts = $("d2").value.split("-");
-  if (parts.length !== 3) { return; }
-  var yy = String(Number(parts[0]) + 543).slice(-2);
-  $("d2Text").value = parts[2] + "/" + parts[1] + "/" + yy;
+  fillDateText(2);
   update();
 }
 function time2FromPicker() {
@@ -1738,7 +1647,7 @@ function buildMessage2() {
   lines.push("สภ.มูโนะ");
   lines.push("เรียนผู้บังคับบัญชา");
   lines.push("วันนี้ " + ($("d2Text").value.trim() || "-"));
-  lines.push("เวลา " + ($("t2Text").value.trim() || "-") + " น.");
+  lines.push("เวลา " + (getCommittedTime(2) || "-") + " น.");
   // รายชื่อ (อยู่ก่อนบรรทัด ตรวจความพร้อม)
   for (var i = 0; i < chosen.c.length; i++) {
     var person = findPerson(chosen.c[i].id);
@@ -1814,10 +1723,7 @@ for (var h3 = 0; h3 < 24; h3++) { $("hh3").add(new Option(pad2(h3), pad2(h3))); 
 for (var m3 = 0; m3 < 60; m3++) { $("mm3").add(new Option(pad2(m3), pad2(m3))); }
 
 function date3FromPicker() {
-  var parts = $("d3").value.split("-");
-  if (parts.length !== 3) { return; }
-  var yy = String(Number(parts[0]) + 543).slice(-2);
-  $("d3Text").value = parts[2] + "/" + parts[1] + "/" + yy;
+  fillDateText(3);
   update();
 }
 function time3FromPicker() {
@@ -1862,7 +1768,7 @@ function buildMessage3() {
   lines.push("สภ.มูโนะ");
   lines.push("เรียนผู้บังคับบัญชา");
   lines.push("วันนี้ " + ($("d3Text").value.trim() || "-"));
-  lines.push("เวลา " + ($("t3Text").value.trim() || "-") + " น.");
+  lines.push("เวลา " + (getCommittedTime(3) || "-") + " น.");
   for (var i = 0; i < chosen.d.length; i++) {
     var person = findPerson(chosen.d[i].id);
     lines.push(P3_INDENT + person.name + (chosen.d[i].sign ? " (" + chosen.d[i].sign + ")" : ""));
@@ -1926,10 +1832,7 @@ for (var h4 = 0; h4 < 24; h4++) { $("hh4").add(new Option(pad2(h4), pad2(h4))); 
 for (var m4 = 0; m4 < 60; m4++) { $("mm4").add(new Option(pad2(m4), pad2(m4))); }
 
 function date4FromPicker() {
-  var parts = $("d4").value.split("-");
-  if (parts.length !== 3) { return; }
-  var yy = String(Number(parts[0]) + 543).slice(-2);
-  $("d4Text").value = parts[2] + "/" + parts[1] + "/" + yy;
+  fillDateText(4);
   update();
 }
 function time4FromPicker() {
@@ -1994,7 +1897,7 @@ function buildMessage4() {
   lines.push("สภ.มูโนะ");
   lines.push("เรียนผู้บังคับบัญชา");
   lines.push("วันนี้ " + ($("d4Text").value.trim() || "-"));
-  lines.push("เวลา " + ($("t4Text").value.trim() || "-") + " น.");
+  lines.push("เวลา " + (getCommittedTime(4) || "-") + " น.");
   for (var i = 0; i < chosen.e.length; i++) {
     var person = findPerson(chosen.e[i].id);
     lines.push(P4_INDENT + person.name + (chosen.e[i].sign ? " (" + chosen.e[i].sign + ")" : ""));
@@ -2302,7 +2205,7 @@ function setNowForPage(force) {
 }
 
 function refreshTimeBeforeSend() {
-  if ($("useNow").checked) { setNowForPage(false); }
+  // ยกเลิกแล้ว: เวลาในรายงานใช้ค่าที่กด "ใส่เวลานี้ลงรายงาน" ไว้
 }
 function buildMessage() {
   if (currentPage === 5) { return buildMessage5(); }
@@ -2312,6 +2215,10 @@ function buildMessage() {
   return buildMessage1();
 }
 function checkForm() {
+  if (currentPage >= 1 && currentPage <= 4 && !getCommittedTime(currentPage)) {
+    toast("กรุณากด ✓ ใส่เวลานี้ลงรายงาน ก่อนส่ง");
+    return false;
+  }
   if (currentPage === 5) { return checkForm5(); }
   if (currentPage === 4) { return checkForm4(); }
   if (currentPage === 3) { return checkForm3(); }
@@ -2324,28 +2231,20 @@ function histStamp() {
     return "[ส่งรายชื่ออินทรี03] " + pad2(nw.getDate()) + "/" + pad2(nw.getMonth() + 1) + "/" + String(nw.getFullYear() + 543).slice(-2)
          + " " + pad2(nw.getHours()) + "." + pad2(nw.getMinutes()) + " น.";
   }
-  if (currentPage === 4) { return "[ตรวจห้องขัง] " + $("d4Text").value + " " + $("t4Text").value + " น."; }
-  if (currentPage === 3) { return "[ตรวจปราการและอินทรี] " + $("d3Text").value + " " + $("t3Text").value + " น."; }
-  if (currentPage === 2) { return "[ตรวจความพร้อม] " + $("d2Text").value + " " + $("t2Text").value + " น."; }
-  return "[รายงานการปฏิบัติ] " + $("dText").value + " " + $("tText").value + " น.";
+  if (currentPage === 4) { return "[ตรวจห้องขัง] " + $("d4Text").value + " " + getCommittedTime(4) + " น."; }
+  if (currentPage === 3) { return "[ตรวจปราการและอินทรี] " + $("d3Text").value + " " + getCommittedTime(3) + " น."; }
+  if (currentPage === 2) { return "[ตรวจความพร้อม] " + $("d2Text").value + " " + getCommittedTime(2) + " น."; }
+  return "[รายงานการปฏิบัติ] " + $("dText").value + " " + getCommittedTime(1) + " น.";
 }
 
-// รูปแนบแยกตามหน้า: แต่ละหัวข้อมีรูปของตัวเอง
-var photoStore = {};
-
 function showPage(n) {
-  if (typeof photos !== "undefined" && currentPage && currentPage !== n) {
-    photoStore[currentPage] = photos;     // เก็บรูปของหน้าเดิม
-    photos = photoStore[n] || [];         // เอารูปของหน้าใหม่มาแสดง
-    drawPhotos();
-  }
   currentPage = n;
   $("page1").style.display = (n === 1) ? "block" : "none";
   $("page2").style.display = (n === 2) ? "block" : "none";
   $("page3").style.display = (n === 3) ? "block" : "none";
   $("page4").style.display = (n === 4) ? "block" : "none";
   $("page5").style.display = (n === 5) ? "block" : "none";
-  $("photoCard").style.display = (n === 5) ? "none" : "block";   // อินทรี03 ไม่ใช้รูป
+  $("finishRow").style.display = (n === 5) ? "none" : "flex";   // หน้าอินทรี03 ซ่อนตัวเลือกจบการรายงาน
   $("tab1").classList.toggle("on", n === 1);
   $("tab2").classList.toggle("on", n === 2);
   $("tab3").classList.toggle("on", n === 3);
@@ -2550,11 +2449,12 @@ function sendPresetNow(p) {
   if (currentPage !== p.page) { showPage(p.page); }
   applyPageState(p.page, p.state);
   setNowForPage(true);
+  if (p.page <= 4 && !getCommittedTime(p.page)) { commitNow(p.page); }   // ยังไม่มีเวลา = ใช้เวลาตอนนี้
   if (!checkForm()) { return; }
   var text = buildMessage();
   if (!confirmSend(text)) { toast("ใส่ข้อมูลชุด " + p.name + " แล้ว แก้ไขได้ก่อนส่ง"); return; }
   saveHistory(text, getPageState());
-  sendLine(text);
+  sendByPicker(text);
 }
 
 // ชื่อชุดที่แนะนำตามหน้า
@@ -2611,901 +2511,6 @@ $("clearAll").onclick = function () {
   toast("ล้างฟอร์มแล้ว");
 };
 
-// ================== ตั้งเวลาส่ง ==================
-// เก็บในเครื่อง: [{ id, when (เวลาเป็นตัวเลข), text (ข้อความ), notified }]
-
-var LIFF_LINK = "https://liff.line.me/" + LIFF_ID;
-var sched = [];
-try { sched = JSON.parse(localStorage.getItem("sched") || "[]"); } catch (e) {}
-
-function saveSched() {
-  try { localStorage.setItem("sched", JSON.stringify(sched)); } catch (e) {}
-}
-
-// แปลงเวลาเป็นข้อความไทย เช่น 30 ก.ย. 2569 เวลา 14.30 น.
-var MONTHS_SHORT = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
-function fmtWhen(ms) {
-  var d = new Date(ms);
-  return d.getDate() + " " + MONTHS_SHORT[d.getMonth()] + " " + (d.getFullYear() + 543)
-       + " เวลา " + pad2(d.getHours()) + "." + pad2(d.getMinutes()) + " น.";
-}
-
-// กล่องเลือกชั่วโมง/นาที ของการตั้งเวลา
-for (var sh = 0; sh < 24; sh++) { $("schedHH").add(new Option(pad2(sh), pad2(sh))); }
-for (var sm = 0; sm < 60; sm++) { $("schedMM").add(new Option(pad2(sm), pad2(sm))); }
-function schedTimeFromPicker() {
-  $("schedTime").value = $("schedHH").value + "." + $("schedMM").value;
-}
-$("schedHH").addEventListener("change", schedTimeFromPicker);
-$("schedMM").addEventListener("change", schedTimeFromPicker);
-
-// ---------- ปุ่มด่วน: ส่งในอีก 5-55 นาที ----------
-var QUICK_MINS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-var quickMin = 0;   // 0 = ไม่ได้เลือกปุ่ม
-
-// ใส่วันเวลา = ตอนนี้ + n นาที
-function setSchedFromNow(n) {
-  var d = new Date(Date.now() + n * 60 * 1000);
-  $("schedDate").value = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
-  $("schedHH").value = pad2(d.getHours());
-  $("schedMM").value = pad2(d.getMinutes());
-  $("schedTime").value = pad2(d.getHours()) + "." + pad2(d.getMinutes());
-}
-
-function drawQuickMins() {
-  var box = $("quickMins");
-  box.innerHTML = "";
-  for (var i = 0; i < QUICK_MINS.length; i++) {
-    var n = QUICK_MINS[i];
-    var b = document.createElement("button");
-    b.className = "btn" + (quickMin === n ? " on" : "");
-    b.textContent = (quickMin === n ? "☑️ " : "") + n;
-    b.setAttribute("data-n", n);
-    b.onclick = function () {
-      var v = Number(this.getAttribute("data-n"));
-      quickMin = (quickMin === v) ? 0 : v;   // กดซ้ำ = ยกเลิก
-      if (quickMin) { setSchedFromNow(quickMin); } else { setDefaultSchedTime(); }
-      drawQuickMins();
-    };
-    box.appendChild(b);
-  }
-  $("quickHint").textContent = quickMin
-    ? "จะส่งในอีก " + quickMin + " นาที นับจากตอนกด ตั้งเวลาส่งข้อความนี้ (" + $("schedTime").value + " น.)"
-    : "หรือเลือกวันและเวลาเองด้านล่าง";
-}
-
-// เลือก/พิมพ์เวลาเอง = ยกเลิกปุ่มด่วน
-["schedDate", "schedHH", "schedMM", "schedTime"].forEach(function (id) {
-  $(id).addEventListener("input", function () {
-    if (quickMin) { quickMin = 0; drawQuickMins(); }
-  });
-});
-
-// ค่าเริ่มต้น = เวลาปัจจุบัน
-function setDefaultSchedTime() {
-  var d = new Date();
-  $("schedDate").value = d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
-  $("schedHH").value = pad2(d.getHours());
-  $("schedMM").value = pad2(d.getMinutes());
-  schedTimeFromPicker();
-}
-
-// อ่านเวลาที่พิมพ์ เช่น 14.30 / 14:30 / 1430 / 14 -> {h, m} หรือ null ถ้าผิด
-function parseTimeText(t) {
-  t = String(t).trim().replace(/\s/g, "").replace("น.", "");
-  var h, m;
-  var parts = t.split(/[.:]/);
-  if (parts.length === 2) {
-    h = Number(parts[0]); m = Number(parts[1]);
-  } else if (/^\d{3,4}$/.test(t)) {
-    h = Number(t.slice(0, t.length - 2)); m = Number(t.slice(-2));
-  } else if (/^\d{1,2}$/.test(t)) {
-    h = Number(t); m = 0;
-  } else {
-    return null;
-  }
-  if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) { return null; }
-  return { h: h, m: m };
-}
-
-function findSched(id) {
-  for (var i = 0; i < sched.length; i++) {
-    if (sched[i].id === id) { return sched[i]; }
-  }
-  return null;
-}
-
-function removeSched(id) {
-  var keep = [];
-  for (var i = 0; i < sched.length; i++) {
-    if (sched[i].id !== id) { keep.push(sched[i]); }
-  }
-  sched = keep;
-  saveSched();
-  drawSched();
-}
-
-// ---------- ไฟล์ปฏิทิน (.ics) สำหรับ iPhone ----------
-function icsDate(ms) {
-  var d = new Date(ms);
-  return d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate())
-       + "T" + pad2(d.getHours()) + pad2(d.getMinutes()) + "00";
-}
-
-function downloadIcs(item) {
-  var lines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//muno-report//TH",
-    "BEGIN:VEVENT",
-    "UID:" + item.id + "@muno-report",
-    "DTSTAMP:" + icsDate(Date.now()),
-    "DTSTART:" + icsDate(item.when),
-    "DTEND:" + icsDate(item.when + 15 * 60 * 1000),
-    "SUMMARY:ส่งรายงานเวร สภ.มูโนะ",
-    "DESCRIPTION:ถึงเวลาส่งรายงาน เปิดฟอร์ม: " + LIFF_LINK,
-    "URL:" + LIFF_LINK,
-    "BEGIN:VALARM",
-    "TRIGGER:PT0M",
-    "ACTION:DISPLAY",
-    "DESCRIPTION:ถึงเวลาส่งรายงานเวร",
-    "END:VALARM",
-    "END:VEVENT",
-    "END:VCALENDAR"
-  ];
-  var blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "แจ้งเตือนส่งรายงาน.ics";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  toast("ถ้าไม่มีหน้าเพิ่มปฏิทินขึ้นมา ให้ใช้ปุ่ม Google Calendar แทน");
-}
-
-// ---------- ลิงก์ Google Calendar ----------
-function openGoogleCal(item) {
-  var url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
-          + "&text=" + encodeURIComponent("ส่งรายงานเวร สภ.มูโนะ")
-          + "&dates=" + icsDate(item.when) + "/" + icsDate(item.when + 15 * 60 * 1000)
-          + "&ctz=Asia/Bangkok"
-          + "&details=" + encodeURIComponent("ถึงเวลาส่งรายงาน เปิดฟอร์ม: " + LIFF_LINK);
-  if (liffReady && liff.isInClient()) {
-    liff.openWindow({ url: url, external: true });   // เปิดนอก LINE
-  } else {
-    window.open(url, "_blank");
-  }
-}
-
-// ---------- แสดงรายการที่ตั้งเวลาไว้ ----------
-// ---------- วิธีส่งเมื่อถึงเวลา ----------
-// remind = แจ้งเตือนให้กดส่งเอง
-// pick   = ถึงเวลาเปิดหน้าเลือกแชตให้ (ส่งแชตอื่นได้)
-var SCHED_MODES = [
-  { key: "remind", label: "🔔 แจ้งเตือนให้กดส่งเอง",
-    hint: "ถึงเวลาจะเด้งเตือน (กด เพิ่มลงปฏิทิน เพื่อให้มือถือเตือน) แล้วกดส่งเอง" },
-  { key: "pick", label: "📤 ถึงเวลาเปิดหน้าเลือกแชตให้ (ส่งแชตอื่นได้)",
-    hint: "เปิดฟอร์มค้างไว้ ถึงเวลาจะเด้งหน้าเลือกแชต/กลุ่มขึ้นมาเอง แค่แตะเลือกแชตแล้วกดส่ง (ส่งได้หลายแชตพร้อมกัน)" }
-];
-var schedMode = "remind";
-try { schedMode = localStorage.getItem("schedMode") || "remind"; } catch (e) {}
-if (schedMode !== "remind" && schedMode !== "pick") { schedMode = "remind"; }
-
-function drawSchedModes() {
-  var box = $("schedModes");
-  box.innerHTML = "";
-  for (var i = 0; i < SCHED_MODES.length; i++) {
-    var m = SCHED_MODES[i];
-    var b = document.createElement("button");
-    b.className = "btn opt" + (schedMode === m.key ? " on" : "");
-    b.textContent = (schedMode === m.key ? "☑️ " : "") + m.label;
-    b.setAttribute("data-k", m.key);
-    b.onclick = function () {
-      schedMode = this.getAttribute("data-k");
-      try { localStorage.setItem("schedMode", schedMode); } catch (e) {}
-      drawSchedModes();
-    };
-    box.appendChild(b);
-    if (schedMode === m.key) { $("schedModeHint").textContent = m.hint; }
-  }
-}
-
-// ---------- แสดงรายการ ----------
-function drawSched() {
-  sched.sort(function (x, y) { return x.when - y.when; });
-  var box = $("schedList");
-  box.innerHTML = "";
-  var now = Date.now();
-  var dueCount = 0;
-
-
-  for (var k = 0; k < sched.length; k++) {
-    var item = sched[k];
-    var isDue = item.when <= now;
-    if (isDue) { dueCount++; }
-
-    var card = document.createElement("div");
-    card.className = "sch" + (isDue ? " isdue" : "");
-
-    var w = document.createElement("div");
-    w.className = "when";
-    w.textContent = fmtWhen(item.when);
-    card.appendChild(w);
-
-    var st = document.createElement("div");
-    st.className = "st";
-    if (isDue) {
-      st.textContent = "⏰ ถึงเวลาส่งแล้ว";
-    } else if (item.mode === "pick") {
-      st.textContent = "📤 ถึงเวลาจะเปิดหน้าเลือกแชตให้";
-    } else {
-      st.textContent = "🔔 รอถึงเวลา";
-    }
-    card.appendChild(st);
-
-    var det = document.createElement("details");
-    var sum = document.createElement("summary");
-    sum.textContent = "ดูข้อความ";
-    det.appendChild(sum);
-    var pre = document.createElement("pre");
-    pre.textContent = item.text;
-    det.appendChild(pre);
-    card.appendChild(det);
-
-    var btns = document.createElement("div");
-    btns.className = "btns";
-    btns.appendChild(makeSchedBtn("ส่งเข้ากลุ่มนี้", item.id, "direct", true));
-    btns.appendChild(makeSchedBtn("เลือกกลุ่มส่ง", item.id, "pick", true));
-    btns.appendChild(makeSchedBtn("เพิ่มลงปฏิทิน iPhone", item.id, "ics", false));
-    btns.appendChild(makeSchedBtn("Google Calendar", item.id, "gcal", false));
-    btns.appendChild(makeSchedBtn("ลบ", item.id, "del", false));
-    card.appendChild(btns);
-
-    box.appendChild(card);
-  }
-
-  $("schedCount").textContent = sched.length ? "(" + sched.length + " รายการ)" : "";
-
-  // แถบเตือนด้านบน
-  if (dueCount > 0) {
-    $("dueText").textContent = "⏰ มีรายงานถึงเวลาส่ง " + dueCount + " รายการ";
-    $("dueBanner").style.display = "flex";
-  } else {
-    $("dueBanner").style.display = "none";
-  }
-  keepScreenOnIfNeeded();
-}
-
-function makeSchedBtn(label, id, action, isSend) {
-  var b = document.createElement("button");
-  b.className = "btn" + (isSend ? " on" : "");
-  b.textContent = label;
-  b.onclick = function () { schedAction(id, action); };
-  return b;
-}
-
-function schedAction(id, action) {
-  var item = findSched(id);
-  if (!item) { return; }
-
-  if (action === "direct" || action === "pick") {
-    saveHistory(item.text, item.state, item.page, item.stamp);
-    if (action === "direct" && canSendDirect()) {
-      sendLine(item.text);
-    } else {
-      if (action === "direct") { toast("ส่งทันทีได้เมื่อเปิดลิงก์จากในกลุ่ม — เปิดหน้าเลือกกลุ่มแทน"); }
-      sendByPicker(item.text);
-    }
-    removeSched(id);   // ส่งแล้ว เอาออกจากรายการ
-    return;
-  }
-  if (action === "ics") { downloadIcs(item); return; }
-  if (action === "gcal") { openGoogleCal(item); return; }
-  if (action === "del") {
-    if (confirm("ลบรายการตั้งเวลานี้?")) { removeSched(id); }
-  }
-}
-
-// ปุ่ม "ตั้งเวลาส่งข้อความนี้"
-$("schedBtn").onclick = function () {
-  if (!checkForm()) { return; }
-  if (quickMin) { setSchedFromNow(quickMin); }   // ปุ่มด่วน: นับจากตอนกดจริง
-  var dparts = $("schedDate").value.split("-");
-  if (dparts.length !== 3) { toast("กรุณาเลือกวันที่ส่ง"); return; }
-  var tm = parseTimeText($("schedTime").value);
-  if (!tm) { toast("เวลาไม่ถูกต้อง พิมพ์แบบ 14.30"); return; }
-  var when = new Date(Number(dparts[0]), Number(dparts[1]) - 1, Number(dparts[2]), tm.h, tm.m, 0).getTime();
-  if (when <= Date.now()) { toast("เวลานี้ถึงแล้ว — กดปุ่ม 5–55 นาที หรือเลือกเวลาข้างหน้า"); return; }
-  var text = buildMessage();
-
-  // เก็บในเครื่อง (แจ้งเตือน / เปิดหน้าเลือกแชต)
-  quickMin = 0;
-  drawQuickMins();
-  sched.push({ id: "s" + Date.now(), when: when, text: text, notified: false, mode: schedMode,
-               page: currentPage, state: getPageState(), stamp: histStamp() });
-  saveSched();
-  drawSched();
-  if (schedMode === "pick") {
-    toast("ตั้งเวลาแล้ว ✓ เปิดหน้านี้ค้างไว้ ถึงเวลาจะเปิดหน้าเลือกแชตให้");
-  } else {
-    toast("ตั้งเวลาแล้ว ✓ กด เพิ่มลงปฏิทิน เพื่อให้แจ้งเตือน");
-  }
-};
-
-$("dueGo").onclick = function () {
-  stopAlarm();
-  setFold("sched", true);
-  $("schedCard").scrollIntoView({ behavior: "smooth" });
-};
-
-// ---------- กันจอดับ ระหว่างรอส่งอัตโนมัติ (ถ้ามือถือรองรับ) ----------
-var wakeLock = null;
-function keepScreenOnIfNeeded() {
-  var needed = false;
-  for (var i = 0; i < sched.length; i++) {
-    if (sched[i].mode === "pick") { needed = true; }
-    if (!isInLine()) { needed = true; }   // รออยู่ใน Safari: กันจอดับทุกแบบ
-  }
-  try {
-    if (needed && !wakeLock && navigator.wakeLock) {
-      navigator.wakeLock.request("screen")
-        .then(function (lock) {
-          wakeLock = lock;
-          lock.addEventListener("release", function () { wakeLock = null; });
-        })
-        .catch(function () {});
-    }
-    if (!needed && wakeLock) { wakeLock.release(); wakeLock = null; }
-  } catch (e) {}
-}
-document.addEventListener("visibilitychange", function () {
-  if (document.visibilityState === "visible") { checkDue(); }
-});
-
-// ---------- เช็กทุก 15 วินาที ----------
-function checkDue() {
-  var now = Date.now();
-  var changed = false;
-  for (var i = 0; i < sched.length; i++) {
-    var item = sched[i];
-    if (item.when > now) { continue; }
-
-    // แบบเลือกแชต: เด้งหน้าต่าง + เปิดหน้าเลือกแชตให้
-    if (item.mode === "pick" && !item.pickShown && !pickOpen) {
-      item.pickShown = true;
-      item.notified = true;
-      changed = true;
-      showPickPopup(item);
-      continue;
-    }
-
-    // อื่นๆ: เด้งเตือนให้กดส่ง
-    if (!item.notified) {
-      item.notified = true;
-      changed = true;
-      toast("⏰ ถึงเวลาส่งรายงาน " + fmtWhen(item.when));
-      try { if (navigator.vibrate) { navigator.vibrate([300, 150, 300]); } } catch (e) {}
-      playAlarm();
-    }
-  }
-  if (changed) { saveSched(); }
-  drawSched();
-}
-
-// ---------- หน้าต่าง "ถึงเวลาส่ง" สำหรับแบบเลือกแชต ----------
-var pickOpen = false;
-var pickItemId = "";
-
-function showPickPopup(item) {
-  pickOpen = true;
-  pickItemId = item.id;
-  $("pickWhen").textContent = "⏰ ถึงเวลาส่งรายงาน " + fmtWhen(item.when);
-  $("pickText").textContent = item.text;
-  $("pickPop").style.display = "flex";
-  try { if (navigator.vibrate) { navigator.vibrate([300, 150, 300]); } } catch (e) {}
-  playAlarm();
-  openPickerFor(item);   // ลองเปิดหน้าเลือกแชตให้เลย
-}
-
-function openPickerFor(item) {
-  sendByPicker(item.text, function (sent) {
-    if (sent) {
-      saveHistory(item.text, item.state, item.page, item.stamp);
-      removeSched(item.id);
-      closePickPopup();
-    }
-  });
-}
-
-function closePickPopup() {
-  pickOpen = false;
-  $("pickPop").style.display = "none";
-}
-
-$("pickGo").onclick = function () {
-  stopAlarm();
-  var item = findSched(pickItemId);
-  if (item) { openPickerFor(item); } else { closePickPopup(); }
-};
-$("pickLater").onclick = function () {
-  stopAlarm();
-  closePickPopup();
-  toast("รายการยังอยู่ในตั้งเวลาส่ง กดส่งได้ภายหลัง");
-};
-
-setInterval(checkDue, 15000);
-
-// ================== เสียงเตือน ==================
-// เล่นเสียงด้วยตัวเล่นเสียง <audio> ในโหมด "เล่นสื่อ"
-// เพื่อให้ iPhone เล่นเสียงได้แม้เปิดโหมดเงียบ (ถ้าแอป LINE อนุญาต)
-// หมายเหตุ: iPhone ไม่ยอมให้หน้าเว็บสั่งเครื่องสั่น
-
-var audioCtx = null;      // สำรอง (Web Audio)
-var alarmAudio = null;    // ตัวเล่นเสียงหลัก
-var audioUnlocked = false;
-var alarmTimers = [];
-
-// บอก iPhone ว่านี่คือเสียงแบบ "เล่นสื่อ" (ไม่ถูกโหมดเงียบปิด) — รองรับ iOS 17 ขึ้นไป
-function setPlaybackSession() {
-  try { if (navigator.audioSession) { navigator.audioSession.type = "playback"; } } catch (e) {}
-}
-
-// สร้างไฟล์เสียง WAV ในเครื่อง: ติ๊ด-ต่อด 3 ครั้ง (ประมาณ 2 วินาที)
-function makeAlarmWav() {
-  var rate = 22050;
-  var tones = [];
-  for (var i = 0; i < 3; i++) {
-    tones.push({ f: 1175, len: 0.22 }, { f: 0, len: 0.06 },
-               { f: 880, len: 0.22 },  { f: 0, len: 0.20 });
-  }
-  var total = 0;
-  for (var t = 0; t < tones.length; t++) { total += Math.floor(tones[t].len * rate); }
-
-  var buf = new ArrayBuffer(44 + total * 2);
-  var v = new DataView(buf);
-  function str(off, txt) { for (var k = 0; k < txt.length; k++) { v.setUint8(off + k, txt.charCodeAt(k)); } }
-  str(0, "RIFF"); v.setUint32(4, 36 + total * 2, true); str(8, "WAVE");
-  str(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
-  str(36, "data"); v.setUint32(40, total * 2, true);
-
-  var pos = 44;
-  for (var n = 0; n < tones.length; n++) {
-    var count = Math.floor(tones[n].len * rate);
-    for (var j = 0; j < count; j++) {
-      var sample = 0;
-      if (tones[n].f > 0) {
-        // คลื่นสี่เหลี่ยม + ค่อยๆ ดัง/เบา กันเสียงแตก
-        var env = Math.min(1, j / 200, (count - j) / 200);
-        sample = (Math.sin(2 * Math.PI * tones[n].f * j / rate) >= 0 ? 1 : -1) * 0.6 * env;
-      }
-      v.setInt16(pos, sample * 32767, true);
-      pos += 2;
-    }
-  }
-  // แปลงเป็น data URI (ใช้ได้กว้างกว่า blob ในแอป LINE)
-  var bytes = new Uint8Array(buf);
-  var bin = "";
-  for (var b = 0; b < bytes.length; b++) { bin += String.fromCharCode(bytes[b]); }
-  return "data:audio/wav;base64," + btoa(bin);
-}
-
-// เปิดระบบเสียง (ต้องเรียกตอนผู้ใช้แตะหน้าจอ)
-// ไฟล์เสียงเงียบสนิท 0.2 วินาที (ใช้ปลดล็อกเสียงตอนแตะจอ โดยไม่มีเสียงดัง)
-function makeSilentWav() {
-  var rate = 8000, count = 1600;
-  var buf = new ArrayBuffer(44 + count);
-  var v = new DataView(buf);
-  function str(off, txt) { for (var k = 0; k < txt.length; k++) { v.setUint8(off + k, txt.charCodeAt(k)); } }
-  str(0, "RIFF"); v.setUint32(4, 36 + count, true); str(8, "WAVE");
-  str(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-  v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
-  str(36, "data"); v.setUint32(40, count, true);
-  for (var i = 0; i < count; i++) { v.setUint8(44 + i, 128); }   // 128 = เงียบ (8-bit)
-  var bytes = new Uint8Array(buf), bin = "";
-  for (var b = 0; b < bytes.length; b++) { bin += String.fromCharCode(bytes[b]); }
-  return "data:audio/wav;base64," + btoa(bin);
-}
-var SILENT_SRC = makeSilentWav();
-var ALARM_SRC = "";   // สร้างตอนจะใช้ครั้งแรก
-
-// เปิดระบบเสียง (ต้องเรียกตอนผู้ใช้แตะหน้าจอ) — เล่นเสียงเงียบ ไม่มีเสียงออก
-function unlockAudio() {
-  try {
-    if (!alarmAudio) {
-      alarmAudio = new Audio(SILENT_SRC);
-      alarmAudio.setAttribute("playsinline", "");
-      alarmAudio.preload = "auto";
-    }
-    if (!audioUnlocked) {
-      if (alarmAudio.src !== SILENT_SRC) { alarmAudio.src = SILENT_SRC; }
-      var pr = alarmAudio.play();
-      if (pr && pr.then) {
-        pr.then(function () { audioUnlocked = true; }).catch(function () {});
-      }
-    }
-  } catch (e) {}
-  // สำรอง: Web Audio
-  try {
-    if (!audioCtx) {
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (AC) { audioCtx = new AC(); }
-    }
-    if (audioCtx && audioCtx.state === "suspended") { audioCtx.resume(); }
-  } catch (e) {}
-}
-document.addEventListener("touchend", unlockAudio);
-document.addEventListener("click", unlockAudio);
-
-// สำรอง: เสียงบี๊บด้วย Web Audio (โดนโหมดเงียบปิด)
-function beep(freq, startAt, length) {
-  var o = audioCtx.createOscillator();
-  var g = audioCtx.createGain();
-  o.type = "square";
-  o.frequency.value = freq;
-  g.gain.setValueAtTime(0.0001, startAt);
-  g.gain.exponentialRampToValueAtTime(0.35, startAt + 0.02);
-  g.gain.exponentialRampToValueAtTime(0.0001, startAt + length);
-  o.connect(g); g.connect(audioCtx.destination);
-  o.start(startAt);
-  o.stop(startAt + length + 0.05);
-}
-function webAudioPattern() {
-  if (!audioCtx) { return; }
-  var t = audioCtx.currentTime + 0.05;
-  for (var i = 0; i < 3; i++) {
-    beep(1175, t, 0.22);
-    beep(880, t + 0.28, 0.22);
-    t += 0.7;
-  }
-}
-
-// เล่นเสียง 1 ชุด: เล่นทั้ง 2 ระบบพร้อมกัน
-// - Web Audio: ดังแน่นอนเมื่อเปิดเสียง (โหมดปกติ)
-// - <audio>: มีโอกาสดังแม้เปิดโหมดเงียบ
-function alarmPattern() {
-  setPlaybackSession();
-  try { if (audioCtx && audioCtx.state === "suspended") { audioCtx.resume(); } } catch (e) {}
-  webAudioPattern();
-  if (alarmAudio) {
-    try {
-      if (!ALARM_SRC) { ALARM_SRC = makeAlarmWav(); }
-      if (alarmAudio.src !== ALARM_SRC) { alarmAudio.src = ALARM_SRC; }
-      alarmAudio.muted = false;
-      alarmAudio.currentTime = 0;
-      var pr = alarmAudio.play();
-      if (pr && pr.catch) { pr.catch(function () {}); }
-    } catch (e) {}
-  }
-  flashScreen();
-}
-
-// จอกะพริบสีทอง (เห็นได้แม้ไม่มีเสียง)
-function flashScreen() {
-  document.body.classList.remove("flash");
-  void document.body.offsetWidth;   // เริ่มแอนิเมชันใหม่
-  document.body.classList.add("flash");
-}
-
-// เล่นเสียงเตือน 4 ชุด ห่างกันชุดละ 4 วินาที
-function playAlarm(force) {
-  if (!force && !$("alarmOn").checked) { return; }
-  unlockAudio();
-  stopAlarm();
-  for (var r = 0; r < 4; r++) {
-    alarmTimers.push(setTimeout(alarmPattern, r * 4000));
-  }
-}
-function stopAlarm() {
-  for (var i = 0; i < alarmTimers.length; i++) { clearTimeout(alarmTimers[i]); }
-  alarmTimers = [];
-  try { if (alarmAudio) { alarmAudio.pause(); } } catch (e) {}
-  document.body.classList.remove("flash");
-}
-
-$("alarmTest").onclick = function () {
-  unlockAudio();
-  stopAlarm();
-  setTimeout(alarmPattern, 150);   // รอให้ระบบเสียงพร้อมก่อน
-  toast("🔊 ลองเปิดโหมดเงียบแล้วกดทดสอบอีกครั้ง ถ้ายังได้ยิน แปลว่าใช้ได้ ✓");
-};
-
-try { if (localStorage.getItem("alarmOn") === "0") { $("alarmOn").checked = false; } } catch (e) {}
-$("alarmOn").addEventListener("change", function () {
-  try { localStorage.setItem("alarmOn", this.checked ? "1" : "0"); } catch (e) {}
-});
-
-// ================== ย้ายไปรอเวลาใน Safari ==================
-// ใน LINE ถ้าเปิดโหมดเงียบ iPhone จะปิดเสียงหน้าเว็บ แต่ใน Safari เสียงแบบเล่นสื่อยังดัง
-var WEB_URL = "https://muno-report.github.io/Muno-report/";
-
-function isInLine() {
-  try { return !!(liffReady && liff.isInClient()); } catch (e) { return false; }
-}
-
-$("toSafari").onclick = function () {
-  if (sched.length === 0) { toast("ยังไม่มีรายการตั้งเวลา — ตั้งเวลาก่อน แล้วค่อยกดปุ่มนี้"); return; }
-  if (!isInLine()) { toast("ตอนนี้อยู่ใน Safari แล้ว ✓ เปิดหน้านี้ค้างไว้"); return; }
-  // ส่งรายการไปกับลิงก์ (อยู่หลัง # ไม่ถูกส่งออกไปที่เซิร์ฟเวอร์)
-  var url = WEB_URL + "#import=" + encodeURIComponent(JSON.stringify(sched));
-  liff.openWindow({ url: url, external: true });
-  toast("กำลังเปิด Safari...");
-};
-
-// เปิดหน้ามาพร้อมรายการที่ส่งมา -> รวมเข้ากับรายการในเครื่อง
-// ใน Safari ซ่อนปุ่ม และบอกวิธีใช้แทน
-function updateSafariHint() {
-  if (isInLine()) {
-    $("toSafari").style.display = "block";
-    $("safariHint").textContent = "ใน LINE ถ้าเปิดโหมดเงียบ เสียงจะไม่ดัง — ตั้งเวลาแล้วกดปุ่มนี้ ย้ายรายการไปรอใน Safari";
-  } else {
-    $("toSafari").style.display = "none";
-    $("safariHint").textContent = "🧭 อยู่ใน Safari: แตะ ทดสอบเสียง 1 ครั้ง แล้วเปิดหน้านี้ค้างไว้ ถึงเวลาจะมีเสียงเตือน แล้วกด เลือกกลุ่มส่ง";
-  }
-}
-
-function importSchedFromUrl() {
-  var h = location.hash || "";
-  if (h.indexOf("#import=") !== 0) { return; }
-  try {
-    var list = JSON.parse(decodeURIComponent(h.substring(8)));
-    var added = 0;
-    for (var i = 0; i < list.length; i++) {
-      if (!findSched(list[i].id)) {
-        list[i].notified = false;
-        list[i].pickShown = false;
-        sched.push(list[i]);
-        added++;
-      }
-    }
-    saveSched();
-    history.replaceState(null, "", location.pathname);   // ล้างลิงก์ กันนำเข้าซ้ำ
-    setFold("sched", true);
-    drawSched();
-    toast("รับรายการตั้งเวลา " + added + " รายการ ✓ แตะ ทดสอบเสียง 1 ครั้ง แล้วเปิดหน้านี้ค้างไว้");
-  } catch (e) {
-    toast("นำเข้ารายการไม่สำเร็จ");
-  }
-}
-
-// ================== แนบรูป (ส่งผ่านเมนูแชร์ของ iPhone) ==================
-// ขั้นตอน: ส่งข้อความก่อน -> หน้าต่างเด้ง -> กดส่งรูป -> เมนูแชร์ -> LINE -> เลือกกลุ่ม
-var photos = [];   // ไฟล์รูปที่เลือก
-
-// เครื่องนี้แชร์ไฟล์รูปจากหน้าเว็บได้ไหม
-function canShareFiles() {
-  try {
-    if (!navigator.canShare) { return false; }
-    var test = new File(["x"], "test.jpg", { type: "image/jpeg" });
-    return navigator.canShare({ files: [test] });
-  } catch (e) { return false; }
-}
-
-function updatePhotoSupport() {
-  if (canShareFiles()) {
-    $("photoSupport").textContent = "✓ เครื่องนี้ส่งรูปผ่านเมนูแชร์ได้ — ส่งข้อความแล้วจะมีปุ่มส่งรูปต่อ";
-  } else {
-    $("photoSupport").textContent = "⚠️ เครื่องนี้แชร์รูปจากฟอร์มไม่ได้ — ส่งข้อความแล้วจะพากลับไปแชต ให้ส่งรูปเองด้วย 📷";
-  }
-}
-
-function drawThumbs(boxId, removable) {
-  var box = $(boxId);
-  box.innerHTML = "";
-  for (var i = 0; i < photos.length; i++) {
-    var d = document.createElement("div");
-    d.className = "th";
-    var img = document.createElement("img");
-    img.src = photos[i]._url;
-    img.alt = "รูปที่ " + (i + 1);
-    d.appendChild(img);
-    if (removable) {
-      var x = document.createElement("button");
-      x.textContent = "✕";
-      x.setAttribute("aria-label", "เอารูปออก");
-      x.setAttribute("data-i", i);
-      x.onclick = function () {
-        var k = Number(this.getAttribute("data-i"));
-        try { URL.revokeObjectURL(photos[k]._url); } catch (e) {}
-        photos.splice(k, 1);
-        drawPhotos();
-      };
-      d.appendChild(x);
-    }
-    box.appendChild(d);
-  }
-}
-
-function drawPhotos() {
-  drawThumbs("photoThumbs", true);
-  $("photoCount").textContent = photos.length ? "(" + photos.length + " รูป · เฉพาะหน้านี้)" : "เฉพาะหน้านี้ · ส่งต่อจากข้อความ";
-  $("photoPick").textContent = photos.length ? "เพิ่มรูป" : "เลือกรูป";
-}
-
-function clearPhotos() {
-  for (var i = 0; i < photos.length; i++) {
-    try { URL.revokeObjectURL(photos[i]._url); } catch (e) {}
-  }
-  photos = [];
-  drawPhotos();
-}
-
-$("photoPick").onclick = function () { $("photoInput").click(); };
-$("photoInput").addEventListener("change", function () {
-  var files = this.files;
-  for (var i = 0; i < files.length; i++) {
-    if (files[i].type.indexOf("image") !== 0) { continue; }
-    files[i]._url = URL.createObjectURL(files[i]);
-    photos.push(files[i]);
-  }
-  this.value = "";   // เลือกรูปเดิมซ้ำได้
-  drawPhotos();
-});
-
-// ---------- หน้าต่างส่งรูปต่อ ----------
-// ---------- รวมหลายรูปเป็นภาพเดียว (คอลลาจ) ----------
-// LINE ส่งรูปจากเมนูแชร์ทีละรูป จึงรวมเป็นภาพเดียวก่อน จะได้ขึ้นเป็นข้อความเดียว
-var collageFile = null;
-
-function loadImg(url) {
-  return new Promise(function (ok, bad) {
-    var im = new Image();
-    im.onload = function () { ok(im); };
-    im.onerror = bad;
-    im.src = url;
-  });
-}
-
-function buildCollage(list) {
-  return Promise.all(list.map(function (f) { return loadImg(f._url); })).then(function (imgs) {
-    var n = imgs.length;
-    var cols = (n <= 1) ? 1 : (n <= 4 ? 2 : 3);
-    var rows = Math.ceil(n / cols);
-
-    // สัดส่วนช่อง = ค่าเฉลี่ยของรูปทั้งหมด (รูปแนวนอน/แนวตั้งจะไม่ถูกตัดมาก)
-    var sum = 0;
-    for (var i = 0; i < n; i++) { sum += imgs[i].naturalWidth / imgs[i].naturalHeight; }
-    var aspect = sum / n;
-
-    var W = 2048, gap = 8;
-    var cellW = Math.floor((W - gap * (cols + 1)) / cols);
-    var cellH = Math.floor(cellW / aspect);
-    var H = rows * cellH + gap * (rows + 1);
-
-    var cv = document.createElement("canvas");
-    cv.width = W; cv.height = H;
-    var ctx = cv.getContext("2d");
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, W, H);
-
-    for (var k = 0; k < n; k++) {
-      var r = Math.floor(k / cols);
-      var c = k % cols;
-      // แถวสุดท้ายที่ไม่เต็ม: จัดกึ่งกลาง
-      var inRow = (r === rows - 1) ? (n - r * cols) : cols;
-      var offset = Math.floor((cols - inRow) * (cellW + gap) / 2);
-      var x = gap + c * (cellW + gap) + offset;
-      var y = gap + r * (cellH + gap);
-
-      // ครอปให้เต็มช่อง (cover)
-      var im = imgs[k];
-      var iw = im.naturalWidth, ih = im.naturalHeight;
-      var scale = Math.max(cellW / iw, cellH / ih);
-      var sw = cellW / scale, sh = cellH / scale;
-      var sx = (iw - sw) / 2, sy = (ih - sh) / 2;
-      ctx.drawImage(im, sx, sy, sw, sh, x, y, cellW, cellH);
-    }
-
-    return new Promise(function (ok) {
-      cv.toBlob(function (blob) {
-        ok({ file: new File([blob], "รูปรายงาน.jpg", { type: "image/jpeg" }), url: URL.createObjectURL(blob) });
-      }, "image/jpeg", 0.85);
-    });
-  });
-}
-
-function showPhotoPopup() {
-  drawThumbs("photoPopThumbs", false);
-  collageFile = null;
-  $("collagePrev").style.display = "none";
-  $("photoShareSep").style.display = "none";
-
-  if (!canShareFiles()) {
-    $("photoShareGo").disabled = false;
-    $("photoShareGo").textContent = "↩️ กลับไปแชตเพื่อส่งรูปเอง";
-    $("photoPopHint").textContent = "เครื่องนี้แชร์รูปจากฟอร์มไม่ได้ — กลับไปที่แชต แล้วกด 📷 ส่งรูปเอง";
-    $("photoPop").style.display = "flex";
-    return;
-  }
-
-  $("photoPop").style.display = "flex";
-
-  // รูปเดียว: ส่งรูปเดิมเลย
-  if (photos.length === 1) {
-    $("photoShareGo").disabled = false;
-    $("photoShareGo").textContent = "📷 ส่งรูปเข้า LINE";
-    $("photoPopHint").textContent = "กดปุ่มด้านล่าง → แตะ LINE → เลือกกลุ่มเดิม → ส่ง";
-    return;
-  }
-
-  // หลายรูป: รวมเป็นภาพเดียวก่อน (ทำล่วงหน้า กดแล้วแชร์ได้ทันที)
-  $("photoShareGo").disabled = true;
-  $("photoShareGo").textContent = "กำลังรวมรูป...";
-  $("photoPopHint").textContent = "รวม " + photos.length + " รูปเป็นภาพเดียว จะได้ขึ้นในแชตเป็นข้อความเดียว";
-  $("photoShareSep").style.display = "block";
-  $("photoShareSep").textContent = "ส่งแยกทีละรูป (" + photos.length + " รูป)";
-  buildCollage(photos)
-    .then(function (res) {
-      collageFile = res.file;
-      $("collagePrev").src = res.url;
-      $("collagePrev").style.display = "block";
-      $("photoShareGo").disabled = false;
-      $("photoShareGo").textContent = "📷 ส่งรูปรวม (ภาพเดียว) เข้า LINE";
-    })
-    .catch(function () {
-      $("photoShareGo").disabled = false;
-      $("photoShareGo").textContent = "📷 ส่งรูป " + photos.length + " รูปเข้า LINE";
-      $("photoPopHint").textContent = "รวมรูปไม่สำเร็จ — จะส่งแยกทีละรูปแทน";
-    });
-}
-
-function closePhotoPopup() {
-  $("photoPop").style.display = "none";
-}
-
-// แชร์ไฟล์ผ่านเมนูของ iPhone (ต้องกดปุ่มเอง iPhone ถึงยอมเปิด)
-function sharePhotoFiles(files) {
-  navigator.share({ files: files })
-    .then(function () {
-      toast("ส่งรูปแล้ว ✓");
-      closePhotoPopup();
-      clearPhotos();
-      if ($("finishOn").checked) {
-        showFinishPopup();   // ต่อด้วย "จบการรายงานครับ"
-      } else {
-        closeFormIfWanted();
-      }
-    })
-    .catch(function (err) {
-      if (err && err.name === "AbortError") {
-        toast("ยกเลิกการส่งรูป — กดส่งรูปใหม่ได้");
-      } else {
-        toast("เปิดเมนูแชร์ไม่ได้ — กลับไปแชตเพื่อส่งรูปเอง");
-        $("photoShareGo").textContent = "↩️ กลับไปแชตเพื่อส่งรูปเอง";
-        $("photoShareGo").onclick = function () {
-          closePhotoPopup(); clearPhotos();
-          if (liffReady && liff.isInClient()) { liff.closeWindow(); }
-        };
-      }
-    });
-}
-
-$("photoShareGo").onclick = function () {
-  // แชร์ไม่ได้: กลับไปแชต
-  if (!canShareFiles()) {
-    closePhotoPopup();
-    clearPhotos();
-    if (liffReady && liff.isInClient()) { liff.closeWindow(); }
-    return;
-  }
-  // หลายรูป + รวมเสร็จแล้ว = ส่งภาพรวม / ไม่งั้นส่งรูปเดิม
-  if (collageFile && photos.length > 1) {
-    sharePhotoFiles([collageFile]);
-  } else {
-    sharePhotoFiles(photos.slice());
-  }
-};
-
-$("photoShareSep").onclick = function () {
-  sharePhotoFiles(photos.slice());
-};
-
-$("photoPopClose").onclick = function () {
-  closePhotoPopup();
-  if (confirm("ล้างรูปที่เลือกไว้ด้วยไหม?")) { clearPhotos(); }
-  if ($("finishOn").checked) { showFinishPopup(); }
-};
-
 // ================== จบการรายงาน ==================
 var FINISH_TEXT = "จบการรายงานครับ";
 
@@ -3556,120 +2561,6 @@ $("helpBtn").onclick = function () { $("helpPop").style.display = "flex"; };
 $("helpClose").onclick = function () { $("helpPop").style.display = "none"; };
 $("helpPop").onclick = function (e) { if (e.target === this) { this.style.display = "none"; } };
 
-// ================== ย้าย/แชร์ข้อมูล ==================
-// รหัส = "MUNO1:" + ข้อมูล (JSON) แปลงเป็น base64
-
-function toCode(obj) {
-  return "MUNO1:" + btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
-}
-function fromCode(text) {
-  var i = text.indexOf("MUNO1:");
-  if (i < 0) { return null; }
-  var raw = text.substring(i + 6).replace(/\s/g, "");
-  return JSON.parse(decodeURIComponent(escape(atob(raw))));
-}
-
-// อัปเดตจำนวนข้างตัวเลือก
-function updateShareCounts() {
-  $("exPresetsL").textContent = "ชุดเวรสำเร็จรูป (" + presets.length + " ชุด)";
-  $("exV4L").textContent = "รายการ ว.4 ที่สร้างเอง (" + localCustom.length + " รายการ)";
-  $("exHistL").textContent = "ประวัติการส่ง (" + hist.length + " รายการ)";
-}
-
-function buildShareText() {
-  var data = { v: 1 };
-  var parts = [];
-  if ($("exPresets").checked && presets.length) { data.presets = presets; parts.push("ชุดเวร " + presets.length + " ชุด"); }
-  if ($("exV4").checked && (localCustom.length || localHidden.length)) {
-    data.v4 = localCustom; data.v4hidden = localHidden;
-    parts.push("ว.4 " + localCustom.length + " รายการ");
-  }
-  if ($("exHist").checked && hist.length) { data.hist = hist; parts.push("ประวัติ " + hist.length + " รายการ"); }
-  if (parts.length === 0) { return null; }
-  return "📦 ข้อมูลฟอร์มรายงานเวร สภ.มูโนะ (" + parts.join(", ") + ")\n"
-       + "วิธีรับ: ก๊อปข้อความนี้ทั้งหมด → เปิดฟอร์ม → ย้าย/แชร์ข้อมูล → วาง → นำเข้า\n\n"
-       + toCode(data);
-}
-
-$("exSend").onclick = function () {
-  var text = buildShareText();
-  if (!text) { toast("ไม่มีข้อมูลให้ส่ง — เลือกอย่างน้อย 1 อย่าง"); return; }
-  sendByPicker(text, null, true);   // ส่งแล้วไม่ต้องปิดฟอร์ม
-};
-
-$("exCopy").onclick = function () {
-  var text = buildShareText();
-  if (!text) { toast("ไม่มีข้อมูลให้ส่ง — เลือกอย่างน้อย 1 อย่าง"); return; }
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text)
-      .then(function () { toast("คัดลอกแล้ว ✓ ไปวางส่งให้เครื่องอื่นได้เลย"); })
-      .catch(function () { toast("คัดลอกไม่ได้ ใช้ปุ่ม ส่งทาง LINE แทน"); });
-  }
-};
-
-$("imGo").onclick = function () {
-  var data = null;
-  try { data = fromCode($("imText").value); } catch (e) { data = null; }
-  if (!data) { toast("ไม่พบรหัส MUNO1: หรือรหัสไม่ครบ ลองก๊อปใหม่ทั้งข้อความ"); return; }
-
-  var msg = [];
-
-  // ชุดเวร: ชื่อซ้ำ = แทนที่
-  if (data.presets) {
-    var n1 = 0;
-    for (var i = 0; i < data.presets.length; i++) {
-      var found = false;
-      for (var j = 0; j < presets.length; j++) {
-        if (!data.presets[i].page) { data.presets[i].page = 1; }
-        if (presets[j].name === data.presets[i].name && presets[j].page === data.presets[i].page) { presets[j] = data.presets[i]; found = true; }
-      }
-      if (!found) { presets.push(data.presets[i]); }
-      n1++;
-    }
-    savePresets();
-    drawPresets();
-    msg.push("ชุดเวร " + n1);
-  }
-
-  // ว.4 ที่สร้างเอง: ไม่เพิ่มซ้ำ
-  if (data.v4) {
-    var n2 = 0;
-    for (var a = 0; a < data.v4.length; a++) {
-      var dup = false;
-      for (var b = 0; b < localCustom.length; b++) {
-        if (localCustom[b].text === data.v4[a].text) { dup = true; }
-      }
-      if (!dup) { localCustom.push({ text: data.v4[a].text, desc: data.v4[a].desc || "" }); n2++; }
-    }
-    var hid = data.v4hidden || [];
-    for (var h = 0; h < hid.length; h++) {
-      if (localHidden.indexOf(hid[h]) < 0) { localHidden.push(hid[h]); }
-    }
-    saveLocal();
-    msg.push("ว.4 " + n2);
-  }
-
-  // ประวัติ: รวม ไม่ซ้ำ
-  if (data.hist) {
-    var n3 = 0;
-    for (var k = 0; k < data.hist.length; k++) {
-      var same = false;
-      for (var m = 0; m < hist.length; m++) {
-        if (hist[m].t === data.hist[k].t && hist[m].ts === data.hist[k].ts) { same = true; }
-      }
-      if (!same) { hist.push(data.hist[k]); n3++; }
-    }
-    hist = hist.slice(0, HIST_MAX);
-    try { localStorage.setItem("hist", JSON.stringify(hist)); } catch (e) {}
-    drawHistory();
-    msg.push("ประวัติ " + n3);
-  }
-
-  $("imText").value = "";
-  updateShareCounts();
-  toast("นำเข้าแล้ว ✓ " + msg.join(", "));
-};
-
 // ================== ขนาดตัวอักษร ==================
 var FONT_STEPS = [0.9, 1, 1.1, 1.2, 1.35];
 var fontStep = 1;
@@ -3691,172 +2582,6 @@ $("fontDown").onclick = function () {
 };
 applyFont();
 
-// ================== แจ้งเตือนประจำวัน ==================
-// [{ page: 2, time: "08.30" }, ...]
-var daily = null;
-try { daily = JSON.parse(localStorage.getItem("daily") || "null"); } catch (e) { daily = null; }
-if (!daily) {
-  daily = [ { page: 2, time: "08.30" }, { page: 3, time: "08.40" }, { page: 4, time: "20.10" } ];
-}
-function saveDaily() {
-  try { localStorage.setItem("daily", JSON.stringify(daily)); } catch (e) {}
-}
-
-// ลิงก์เปิดฟอร์มหน้าที่ต้องการ
-function pageLink(page) { return LIFF_LINK + "?page=" + page; }
-
-// ครั้งถัดไปของเวลานี้ (วันนี้ ถ้ายังไม่ถึง ไม่งั้นพรุ่งนี้)
-function nextOccurrence(tm) {
-  var d = new Date();
-  d.setHours(tm.h, tm.m, 0, 0);
-  if (d.getTime() <= Date.now()) { d.setDate(d.getDate() + 1); }
-  return d.getTime();
-}
-
-function dailyEventLines(entry, idx) {
-  var tm = parseTimeText(entry.time);
-  if (!tm) { return []; }
-  var start = nextOccurrence(tm);
-  var title = "ส่งรายงาน " + PAGE_NAMES[entry.page] + " เวลา " + pad2(tm.h) + "." + pad2(tm.m) + " น.";
-  return [
-    "BEGIN:VEVENT",
-    "UID:daily-" + entry.page + "-" + pad2(tm.h) + pad2(tm.m) + "@muno-report",
-    "DTSTAMP:" + icsDate(Date.now()),
-    "DTSTART:" + icsDate(start),
-    "DTEND:" + icsDate(start + 10 * 60 * 1000),
-    "RRULE:FREQ=DAILY",
-    "SUMMARY:" + title,
-    "DESCRIPTION:เปิดฟอร์ม: " + pageLink(entry.page),
-    "URL:" + pageLink(entry.page),
-    "BEGIN:VALARM",
-    "TRIGGER:PT0M",
-    "ACTION:DISPLAY",
-    "DESCRIPTION:" + title,
-    "END:VALARM",
-    "END:VEVENT"
-  ];
-}
-
-function downloadDailyIcs(list) {
-  var lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//muno-report//TH"];
-  var n = 0;
-  for (var i = 0; i < list.length; i++) {
-    var ev = dailyEventLines(list[i], i);
-    if (ev.length) { lines = lines.concat(ev); n++; }
-  }
-  lines.push("END:VCALENDAR");
-  if (n === 0) { toast("เวลาไม่ถูกต้อง พิมพ์แบบ 08.30"); return; }
-  var blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "แจ้งเตือนรายงานประจำวัน.ics";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  toast("ถ้าไม่มีหน้าเพิ่มปฏิทินขึ้นมา ให้ใช้ปุ่ม Google แทน");
-}
-
-function openDailyGoogle(entry) {
-  var tm = parseTimeText(entry.time);
-  if (!tm) { toast("เวลาไม่ถูกต้อง พิมพ์แบบ 08.30"); return; }
-  var start = nextOccurrence(tm);
-  var url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
-          + "&text=" + encodeURIComponent("ส่งรายงาน " + PAGE_NAMES[entry.page])
-          + "&dates=" + icsDate(start) + "/" + icsDate(start + 10 * 60 * 1000)
-          + "&ctz=Asia/Bangkok"
-          + "&recur=" + encodeURIComponent("RRULE:FREQ=DAILY")
-          + "&details=" + encodeURIComponent("เปิดฟอร์ม: " + pageLink(entry.page));
-  if (liffReady && liff.isInClient()) {
-    liff.openWindow({ url: url, external: true });
-  } else {
-    window.open(url, "_blank");
-  }
-}
-
-function drawDaily() {
-  var box = $("dailyList");
-  box.innerHTML = "";
-  $("dailyCount").textContent = daily.length ? "(" + daily.length + " เวลา)" : "";
-  for (var i = 0; i < daily.length; i++) {
-    var row = document.createElement("div");
-    row.className = "dl";
-
-    var r = document.createElement("div");
-    r.className = "r";
-    var sel = document.createElement("select");
-    for (var pg = 1; pg <= 5; pg++) { sel.add(new Option(PAGE_NAMES[pg], String(pg))); }
-    sel.value = String(daily[i].page);
-    sel.setAttribute("data-i", i);
-    sel.setAttribute("aria-label", "หน้ารายงาน");
-    sel.onchange = function () { daily[Number(this.getAttribute("data-i"))].page = Number(this.value); saveDaily(); };
-    r.appendChild(sel);
-
-    var t = document.createElement("input");
-    t.type = "text";
-    t.inputMode = "decimal";
-    t.value = daily[i].time;
-    t.setAttribute("data-i", i);
-    t.setAttribute("aria-label", "เวลา");
-    t.onchange = function () {
-      var tm = parseTimeText(this.value);
-      if (!tm) { toast("เวลาไม่ถูกต้อง พิมพ์แบบ 08.30"); return; }
-      this.value = pad2(tm.h) + "." + pad2(tm.m);
-      daily[Number(this.getAttribute("data-i"))].time = this.value;
-      saveDaily();
-    };
-    r.appendChild(t);
-    var unit = document.createElement("span");
-    unit.textContent = "น.";
-    r.appendChild(unit);
-    row.appendChild(r);
-
-    var btns = document.createElement("div");
-    btns.className = "btns";
-    var b1 = document.createElement("button");
-    b1.className = "btn";
-    b1.textContent = "📅 ปฏิทิน";
-    b1.setAttribute("data-i", i);
-    b1.onclick = function () { downloadDailyIcs([daily[Number(this.getAttribute("data-i"))]]); };
-    btns.appendChild(b1);
-    var b2 = document.createElement("button");
-    b2.className = "btn";
-    b2.textContent = "Google";
-    b2.setAttribute("data-i", i);
-    b2.onclick = function () { openDailyGoogle(daily[Number(this.getAttribute("data-i"))]); };
-    btns.appendChild(b2);
-    var b3 = document.createElement("button");
-    b3.className = "btn";
-    b3.textContent = "ลบ";
-    b3.setAttribute("data-i", i);
-    b3.onclick = function () {
-      var k = Number(this.getAttribute("data-i"));
-      if (!confirm("ลบเวลาแจ้งเตือนนี้? (ถ้าเพิ่มลงปฏิทินแล้ว ต้องลบในแอปปฏิทินด้วย)")) { return; }
-      daily.splice(k, 1);
-      saveDaily();
-      drawDaily();
-    };
-    btns.appendChild(b3);
-    row.appendChild(btns);
-
-    box.appendChild(row);
-  }
-}
-
-$("dailyAdd").onclick = function () {
-  daily.push({ page: currentPage || 1, time: "08.00" });
-  saveDaily();
-  drawDaily();
-};
-$("dailyIcsAll").onclick = function () {
-  if (daily.length === 0) { toast("ยังไม่มีเวลาแจ้งเตือน"); return; }
-  downloadDailyIcs(daily);
-};
-
-try { if (localStorage.getItem("autoPage") === "0") { $("autoPage").checked = false; } } catch (e) {}
-$("autoPage").addEventListener("change", function () {
-  try { localStorage.setItem("autoPage", this.checked ? "1" : "0"); } catch (e) {}
-});
-
 // ---------- เปิดหน้าตามลิงก์ (?page=) หรือตามช่วงเวลา ----------
 function pageFromUrl() {
   try {
@@ -3872,25 +2597,7 @@ function pageFromUrl() {
   return 0;
 }
 
-function pageByTime() {
-  if (!$("autoPage").checked) { return 0; }
-  var now = new Date();
-  var mins = now.getHours() * 60 + now.getMinutes();
-  var best = 0, bestDiff = 9999;
-  for (var i = 0; i < daily.length; i++) {
-    var tm = parseTimeText(daily[i].time);
-    if (!tm) { continue; }
-    var t = tm.h * 60 + tm.m;
-    var diff = mins - t;   // บวก = เลยเวลามาแล้ว
-    if (diff < -720) { diff += 1440; }   // ข้ามเที่ยงคืน
-    if (diff > 720) { diff -= 1440; }
-    if (diff >= -30 && diff <= 60 && Math.abs(diff) < bestDiff) {
-      best = daily[i].page;
-      bestDiff = Math.abs(diff);
-    }
-  }
-  return best;
-}
+function pageByTime() { return 0; }   // (ยกเลิกแจ้งเตือนประจำวันแล้ว)
 
 // ================== โหลดรายชื่อจาก Google Sheet ==================
 var namesStatusText = "กำลังโหลดรายชื่อ...";
@@ -3942,16 +2649,112 @@ function redrawAllGroups() {
   for (var k = 0; k < keys.length; k++) { drawGroups(keys[k]); drawChosen(keys[k]); }
 }
 
+// อ่านเวลาที่พิมพ์ เช่น 14.30 / 14:30 / 1430 / 14 -> {h, m} หรือ null ถ้าผิด
+function parseTimeText(t) {
+  t = String(t).trim().replace(/\s/g, "").replace("น.", "");
+  var h, m;
+  var parts = t.split(/[.:]/);
+  if (parts.length === 2) {
+    h = Number(parts[0]); m = Number(parts[1]);
+  } else if (/^\d{3,4}$/.test(t)) {
+    h = Number(t.slice(0, t.length - 2)); m = Number(t.slice(-2));
+  } else if (/^\d{1,2}$/.test(t)) {
+    h = Number(t); m = 0;
+  } else {
+    return null;
+  }
+  if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) { return null; }
+  return { h: h, m: m };
+}
+
+// ================== เวลาในรายงาน (ต้องกดยืนยัน) ==================
+// - เลือก/พิมพ์เวลา = ร่าง ยังไม่เข้ารายงาน
+// - กด "✓ ใส่เวลานี้ลงรายงาน" = ยืนยัน เวลานี้จะอยู่ในรายงาน และจำไว้แม้ปิดเปิดแอป
+// - นาฬิกา "ตอนนี้" เดินตลอด ถ้าอยากเปลี่ยนเวลา กดยืนยันใหม่
+var TIME_INPUT = { 1: "tText", 2: "t2Text", 3: "t3Text", 4: "t4Text" };
+var timeCommitted = {};
+try { timeCommitted = JSON.parse(localStorage.getItem("timeCommitted") || "{}") || {}; } catch (e) { timeCommitted = {}; }
+
+function getCommittedTime(page) { return timeCommitted[page] || ""; }
+
+function saveCommitted() {
+  try { localStorage.setItem("timeCommitted", JSON.stringify(timeCommitted)); } catch (e) {}
+}
+
+function drawCommitStatus(page) {
+  var el = $("tcStat" + page);
+  var t = getCommittedTime(page);
+  if (t) {
+    el.textContent = "✓ ในรายงาน: " + t + " น.";
+    el.className = "tc ok";
+  } else {
+    el.textContent = "⚠️ ยังไม่ได้ใส่เวลา";
+    el.className = "tc no";
+  }
+}
+
+// ยืนยันเวลาจากช่องร่าง
+function commitTime(page) {
+  var raw = $(TIME_INPUT[page]).value.trim();
+  if (!raw) { toast("ใส่เวลาก่อน เช่น 14.30"); return; }
+  var tm = parseTimeText(raw);
+  // รูปแบบเวลาปกติ -> จัดเป็น 14.30 / ถ้าพิมพ์แบบอื่น (เช่น ช่วงเวลา) ใช้ตามที่พิมพ์
+  timeCommitted[page] = tm ? pad2(tm.h) + "." + pad2(tm.m) : raw;
+  saveCommitted();
+  drawCommitStatus(page);
+  update();
+  toast("ใส่เวลา " + timeCommitted[page] + " น. ลงรายงานแล้ว ✓");
+}
+
+// ยืนยันเวลาปัจจุบันทันที
+function commitNow(page) {
+  var n = new Date();
+  timeCommitted[page] = pad2(n.getHours()) + "." + pad2(n.getMinutes());
+  saveCommitted();
+  drawCommitStatus(page);
+  update();
+}
+
+[1, 2, 3, 4].forEach(function (pg) {
+  $("commit" + pg).onclick = function () { commitTime(pg); };
+});
+// ปุ่ม "ใช้วันที่และเวลาปัจจุบัน" = ตั้งวันที่วันนี้ + ใส่เวลาปัจจุบันลงรายงานเลย
+$("now").addEventListener("click", function () { commitNow(1); });
+$("now2").addEventListener("click", function () { commitNow(2); });
+$("now3").addEventListener("click", function () { commitNow(3); });
+$("now4").addEventListener("click", function () { commitNow(4); });
+
+// นาฬิกาเดินตลอด
+function tickClock() {
+  var n = new Date();
+  var t = pad2(n.getHours()) + "." + pad2(n.getMinutes());
+  var els = document.querySelectorAll(".liveClock");
+  for (var i = 0; i < els.length; i++) { els[i].textContent = t; }
+}
+setInterval(tickClock, 1000);
+
+// ป้ายปุ่มรูปแบบวันที่ ให้ตรงกับวันที่ที่เลือก
+function refreshDateFmtLabels() {
+  for (var pg = 1; pg <= 4; pg++) {
+    var parts = $(DATE_IDS[pg][0]).value.split("-");
+    if (parts.length !== 3) { continue; }
+    var btns = $("dfmt" + pg).querySelectorAll(".btn");
+    var labels = { full: formatDateParts(parts, "full"), short: formatDateParts(parts, "short") };
+    for (var i = 0; i < btns.length; i++) {
+      var f = btns[i].getAttribute("data-f");
+      btns[i].textContent = (dateFmt[pg] === f ? "☑️ " : "") + labels[f];
+    }
+  }
+}
+
 // ================== พับ/เปิดการ์ด ==================
 // จำไว้ว่าการ์ดไหนเปิดอยู่ (ค่าเริ่มต้น: พับทั้งหมด)
-var FOLD_IDS = { preset: "fold_preset", sched: "schedCard", hist: "fold_hist", share: "fold_share", daily: "fold_daily" };
+var FOLD_IDS = { preset: "fold_preset", hist: "fold_hist" };
 var foldState = {};
 try { foldState = JSON.parse(localStorage.getItem("folds") || "{}"); } catch (e) {}
 
 function setFold(key, isOpen) {
   foldState[key] = isOpen;
-  if (key === "share" && isOpen) { updateShareCounts(); }
-  if (key === "sched" && isOpen && typeof quickMin !== "undefined" && !quickMin) { setDefaultSchedTime(); }
   $(FOLD_IDS[key]).classList.toggle("open", isOpen);
   try { localStorage.setItem("folds", JSON.stringify(foldState)); } catch (e) {}
 }
@@ -3967,7 +2770,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "1 ต.ค. 69 · รุ่นที่ 25";
+var APP_VERSION = "2 ต.ค. 69 · รุ่นที่ 29";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
@@ -3982,15 +2785,12 @@ setNow();
 startLiff();
 loadShared();
 loadNames();
-setDefaultSchedTime();
-drawQuickMins();
-drawSchedModes();
-drawSched();
-importSchedFromUrl();
-updateSafariHint();
-updatePhotoSupport();
 drawPresets();
 restoreLastForm();   // ใส่ค่าครั้งก่อน (วันที่/เวลาใช้ของปัจจุบัน)
+drawDateFmt(1); drawDateFmt(2); drawDateFmt(3); drawDateFmt(4);
+for (var cpg = 1; cpg <= 4; cpg++) { drawCommitStatus(cpg); }
+tickClock();
+fillDateText(1);
 setNow2();
 restoreLast2();
 setNow3();
@@ -3998,19 +2798,12 @@ restoreLast3();
 setNow4();
 restoreLast4();
 restoreLast5();
-// จำตัวเลือก "ใช้วันเวลาปัจจุบันตอนกดส่ง"
-try { if (localStorage.getItem("useNow") === "0") { $("useNow").checked = false; } } catch (e) {}
-$("useNow").addEventListener("change", function () {
-  try { localStorage.setItem("useNow", this.checked ? "1" : "0"); } catch (e) {}
-});
-
 restoring = false;
 var lastPage = 1;
 try { lastPage = Number(localStorage.getItem("lastPage")) || 1; } catch (e) {}
 if (lastPage < 1 || lastPage > 5) { lastPage = 1; }
-drawDaily();
-// ลำดับ: ลิงก์ ?page= > ช่วงเวลาแจ้งเตือน > หน้าที่ใช้ล่าสุด
-var startPage = pageFromUrl() || pageByTime() || lastPage;
+// ลำดับ: ลิงก์ ?page= > หน้าที่ใช้ล่าสุด
+var startPage = pageFromUrl() || lastPage;
 showPage(startPage);
 </script>
 </body>
