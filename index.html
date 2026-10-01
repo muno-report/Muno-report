@@ -3321,15 +3321,108 @@ function clearPhotos() {
 }
 
 $("photoPick").onclick = function () { $("photoInput").click(); };
+// ---------- ย่อรูปก่อนส่ง (ทำให้ส่งเร็วขึ้นมาก) ----------
+// รูปจากกล้องมือถือ 3-6 MB -> ย่อเหลือประมาณ 200-400 KB
+var PHOTO_MAX_SIDE = 1600;   // ด้านที่ยาวที่สุด (px) — อยากเล็กกว่านี้ใส่ 1280
+var PHOTO_QUALITY = 0.75;    // คุณภาพ JPEG 0-1 — อยากเล็กกว่านี้ใส่ 0.7
+var photosBusy = 0;          // จำนวนรูปที่กำลังย่ออยู่
+
+function compressPhoto(file, number) {
+  return new Promise(function (resolve) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+
+    img.onload = function () {
+      var width = img.naturalWidth;
+      var height = img.naturalHeight;
+
+      // รูปเล็กอยู่แล้ว ไม่ต้องย่อ
+      var isSmallJpeg = (file.type === "image/jpeg" && file.size < 400 * 1024);
+      if (isSmallJpeg && width <= PHOTO_MAX_SIDE && height <= PHOTO_MAX_SIDE) {
+        URL.revokeObjectURL(url);
+        resolve(file);
+        return;
+      }
+
+      // คำนวณขนาดใหม่ (รักษาสัดส่วนเดิม)
+      if (width > height) {
+        if (width > PHOTO_MAX_SIDE) {
+          height = Math.round(height * PHOTO_MAX_SIDE / width);
+          width = PHOTO_MAX_SIDE;
+        }
+      } else {
+        if (height > PHOTO_MAX_SIDE) {
+          width = Math.round(width * PHOTO_MAX_SIDE / height);
+          height = PHOTO_MAX_SIDE;
+        }
+      }
+
+      // วาดลง canvas ขนาดใหม่
+      var canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";   // พื้นขาว (เผื่อรูป PNG โปร่งใส)
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+
+      // แปลงเป็นไฟล์ JPEG
+      canvas.toBlob(function (blob) {
+        if (!blob || blob.size >= file.size) {
+          resolve(file);   // ย่อไม่ได้ หรือย่อแล้วไม่เล็กลง -> ใช้รูปเดิม
+          return;
+        }
+        var newFile = new File([blob], "photo_" + number + ".jpg", { type: "image/jpeg" });
+        resolve(newFile);
+      }, "image/jpeg", PHOTO_QUALITY);
+    };
+
+    img.onerror = function () {
+      URL.revokeObjectURL(url);
+      resolve(file);   // เปิดรูปไม่ได้ -> ใช้รูปเดิม
+    };
+
+    img.src = url;
+  });
+}
+
+function showPhotoBusy() {
+  if (photosBusy > 0) {
+    $("photoCount").textContent = "(กำลังย่อรูป... เหลือ " + photosBusy + ")";
+  } else {
+    drawPhotos();
+  }
+}
+
 $("photoInput").addEventListener("change", function () {
-  var files = this.files;
-  for (var i = 0; i < files.length; i++) {
-    if (files[i].type.indexOf("image") !== 0) { continue; }
-    files[i]._url = URL.createObjectURL(files[i]);
-    photos.push(files[i]);
+  var files = [];
+  for (var i = 0; i < this.files.length; i++) {
+    if (this.files[i].type.indexOf("image") !== 0) { continue; }
+    files.push(this.files[i]);
   }
   this.value = "";   // เลือกรูปเดิมซ้ำได้
-  drawPhotos();
+  if (files.length === 0) { return; }
+
+  photosBusy = photosBusy + files.length;
+  showPhotoBusy();
+
+  // ย่อทีละรูปตามลำดับ (ไม่ให้เครื่องหน่วง)
+  var index = 0;
+  function next() {
+    if (index >= files.length) { return; }
+    var number = photos.length + 1;
+    compressPhoto(files[index], number).then(function (smallFile) {
+      smallFile._url = URL.createObjectURL(smallFile);
+      photos.push(smallFile);
+      photosBusy = photosBusy - 1;
+      index = index + 1;
+      drawPhotos();
+      showPhotoBusy();
+      next();
+    });
+  }
+  next();
 });
 
 // ---------- หน้าต่างส่งรูปต่อ ----------
@@ -3355,6 +3448,11 @@ $("photoShareGo").onclick = function () {
     closePhotoPopup();
     clearPhotos();
     if (liffReady && liff.isInClient()) { liff.closeWindow(); }
+    return;
+  }
+  // ยังย่อรูปไม่เสร็จ -> รอก่อน
+  if (photosBusy > 0) {
+    toast("กำลังย่อรูปอยู่ รอสักครู่แล้วกดใหม่");
     return;
   }
   // แชร์ไฟล์ผ่านเมนูของ iPhone (ต้องกดปุ่มนี้เอง iPhone ถึงยอมเปิด)
