@@ -555,7 +555,6 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <button class="go alt" id="cp">คัดลอกข้อความ</button>
 <label class="closeOpt"><input type="checkbox" id="useNow" checked> ใช้วันเวลาปัจจุบันตอนกดส่ง (ถ้าพิมพ์เวลาเองจะไม่เปลี่ยน) 🕒</label>
 <label class="closeOpt"><input type="checkbox" id="finishOn" checked> หลังส่งเสร็จ ให้กดส่ง "จบการรายงานครับ" ✅</label>
-<label class="closeOpt"><input type="checkbox" id="closeAfter" checked> ส่งข้อความแล้วปิดฟอร์ม กลับไปแชตเพื่อส่งรูปต่อ 📷</label>
 <div id="t"></div>
 
 <!-- ===== ตั้งเวลาส่ง ===== -->
@@ -1400,25 +1399,13 @@ document.addEventListener("visibilitychange", function () {
   }
 });
 
-// หลังส่งข้อความสำเร็จ: ถ้าเปิดตัวเลือกไว้ จะปิดฟอร์มเพื่อกลับไปส่งรูปในแชต
+// หลังส่งข้อความสำเร็จ: มีรูป -> ส่งรูปต่อ / ไม่มีรูป -> ถาม "จบการรายงานครับ"
 function afterSent(isDirect) {
-  // มีรูปแนบ: เปิดหน้าต่างส่งรูปต่อ (ยังไม่ปิดฟอร์ม)
   if (photos.length > 0) {
     showPhotoPopup();
     return;
   }
-  // ไม่มีรูป และไม่ได้ตั้งให้ปิดฟอร์มไปส่งรูปเอง (หรือเปิดนอก LINE) -> ถาม "จบการรายงานครับ"
-  if (!$("closeAfter").checked || !(liffReady && liff.isInClient())) {
-    if ($("finishOn").checked) { showFinishPopup(); }
-    return;
-  }
-  if (!(liffReady && liff.isInClient())) { return; }   // เปิดนอก LINE ปิดให้ไม่ได้
-  if (isDirect) {
-    toast("ส่งแล้ว ✓ กำลังกลับไปแชต ส่งรูปต่อได้เลย 📷");
-  } else {
-    toast("ส่งแล้ว ✓ เปิดกลุ่มที่เลือกเพื่อส่งรูปต่อ 📷");
-  }
-  setTimeout(function () { liff.closeWindow(); }, 1500);
+  if ($("finishOn").checked) { showFinishPopup(); }
 }
 
 // ปุ่มส่งเรียกฟังก์ชันนี้
@@ -3143,12 +3130,8 @@ function closeFinishPopup() {
   $("finishPop").style.display = "none";
 }
 
-// ปิดฟอร์มถ้าติ๊ก "ปิดฟอร์ม" ไว้
-function closeFormIfWanted() {
-  if ($("closeAfter").checked && liffReady && liff.isInClient()) {
-    setTimeout(function () { liff.closeWindow(); }, 1200);
-  }
-}
+// (ยกเลิกระบบปิดฟอร์มอัตโนมัติแล้ว — ฟอร์มเปิดค้างไว้ตามเดิม)
+function closeFormIfWanted() {}
 
 $("finishGo").onclick = function () {
   closeFinishPopup();
@@ -3593,7 +3576,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "1 ต.ค. 69 · รุ่นที่ 18";
+var APP_VERSION = "1 ต.ค. 69 · รุ่นที่ 19";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
@@ -3629,11 +3612,6 @@ $("useNow").addEventListener("change", function () {
   try { localStorage.setItem("useNow", this.checked ? "1" : "0"); } catch (e) {}
 });
 
-// จำตัวเลือก "ปิดฟอร์มหลังส่ง"
-try { if (localStorage.getItem("closeAfter") === "0") { $("closeAfter").checked = false; } } catch (e) {}
-$("closeAfter").addEventListener("change", function () {
-  try { localStorage.setItem("closeAfter", this.checked ? "1" : "0"); } catch (e) {}
-});
 restoring = false;
 var lastPage = 1;
 try { lastPage = Number(localStorage.getItem("lastPage")) || 1; } catch (e) {}
