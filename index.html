@@ -176,7 +176,9 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     <div class="popTitle">✓ ส่งข้อความแล้ว — ต่อไปส่งรูป</div>
     <div id="photoPopThumbs" class="thumbs"></div>
     <p class="hint" id="photoPopHint">กดปุ่มด้านล่าง → แตะ LINE → เลือกกลุ่มเดิม → ส่ง</p>
+    <img id="collagePrev" alt="ตัวอย่างภาพรวม" style="display:none;width:100%;border-radius:10px;margin:8px 0;border:1px solid var(--line)">
     <button class="go" id="photoShareGo">📷 ส่งรูปเข้า LINE</button>
+    <button class="go alt" id="photoShareSep" style="display:none">ส่งแยกทีละรูป</button>
     <button class="go alt" id="photoPopClose">ไม่ส่งรูป</button>
   </div>
 </div>
@@ -247,7 +249,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
       <ol>
         <li>การ์ด <b>📷 แนบรูป</b> → <b>เลือกรูป</b> (หลายรูปได้ กด ✕ เอาออก)</li>
         <li>กดส่งรายงานตามปกติ ข้อความเข้ากลุ่มก่อน</li>
-        <li>หน้าต่าง "ต่อไปส่งรูป" เด้ง → <b>ส่งรูปเข้า LINE</b> → แตะ LINE → เลือกกลุ่มเดิม → ส่ง</li>
+        <li>หน้าต่าง "ต่อไปส่งรูป" เด้ง → หลายรูปจะ<b>รวมเป็นภาพเดียว</b>ให้ → <b>ส่งรูปรวมเข้า LINE</b> → แตะ LINE → เลือกกลุ่มเดิม → ส่ง</li>
       </ol>
       <p>ถ้าเครื่องแชร์รูปไม่ได้ ระบบจะพากลับไปแชตให้ส่งรูปเอง</p>
     </details>
@@ -3321,142 +3323,130 @@ function clearPhotos() {
 }
 
 $("photoPick").onclick = function () { $("photoInput").click(); };
-// ---------- ย่อรูปก่อนส่ง (ทำให้ส่งเร็วขึ้นมาก) ----------
-// รูปจากกล้องมือถือ 3-6 MB -> ย่อเหลือประมาณ 200-400 KB
-var PHOTO_MAX_SIDE = 1600;   // ด้านที่ยาวที่สุด (px) — อยากเล็กกว่านี้ใส่ 1280
-var PHOTO_QUALITY = 0.75;    // คุณภาพ JPEG 0-1 — อยากเล็กกว่านี้ใส่ 0.7
-var photosBusy = 0;          // จำนวนรูปที่กำลังย่ออยู่
-
-function compressPhoto(file, number) {
-  return new Promise(function (resolve) {
-    var url = URL.createObjectURL(file);
-    var img = new Image();
-
-    img.onload = function () {
-      var width = img.naturalWidth;
-      var height = img.naturalHeight;
-
-      // รูปเล็กอยู่แล้ว ไม่ต้องย่อ
-      var isSmallJpeg = (file.type === "image/jpeg" && file.size < 400 * 1024);
-      if (isSmallJpeg && width <= PHOTO_MAX_SIDE && height <= PHOTO_MAX_SIDE) {
-        URL.revokeObjectURL(url);
-        resolve(file);
-        return;
-      }
-
-      // คำนวณขนาดใหม่ (รักษาสัดส่วนเดิม)
-      if (width > height) {
-        if (width > PHOTO_MAX_SIDE) {
-          height = Math.round(height * PHOTO_MAX_SIDE / width);
-          width = PHOTO_MAX_SIDE;
-        }
-      } else {
-        if (height > PHOTO_MAX_SIDE) {
-          width = Math.round(width * PHOTO_MAX_SIDE / height);
-          height = PHOTO_MAX_SIDE;
-        }
-      }
-
-      // วาดลง canvas ขนาดใหม่
-      var canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      var ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#ffffff";   // พื้นขาว (เผื่อรูป PNG โปร่งใส)
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(img, 0, 0, width, height);
-      URL.revokeObjectURL(url);
-
-      // แปลงเป็นไฟล์ JPEG
-      canvas.toBlob(function (blob) {
-        if (!blob || blob.size >= file.size) {
-          resolve(file);   // ย่อไม่ได้ หรือย่อแล้วไม่เล็กลง -> ใช้รูปเดิม
-          return;
-        }
-        var newFile = new File([blob], "photo_" + number + ".jpg", { type: "image/jpeg" });
-        resolve(newFile);
-      }, "image/jpeg", PHOTO_QUALITY);
-    };
-
-    img.onerror = function () {
-      URL.revokeObjectURL(url);
-      resolve(file);   // เปิดรูปไม่ได้ -> ใช้รูปเดิม
-    };
-
-    img.src = url;
-  });
-}
-
-function showPhotoBusy() {
-  if (photosBusy > 0) {
-    $("photoCount").textContent = "(กำลังย่อรูป... เหลือ " + photosBusy + ")";
-  } else {
-    drawPhotos();
-  }
-}
-
 $("photoInput").addEventListener("change", function () {
-  var files = [];
-  for (var i = 0; i < this.files.length; i++) {
-    if (this.files[i].type.indexOf("image") !== 0) { continue; }
-    files.push(this.files[i]);
+  var files = this.files;
+  for (var i = 0; i < files.length; i++) {
+    if (files[i].type.indexOf("image") !== 0) { continue; }
+    files[i]._url = URL.createObjectURL(files[i]);
+    photos.push(files[i]);
   }
   this.value = "";   // เลือกรูปเดิมซ้ำได้
-  if (files.length === 0) { return; }
-
-  photosBusy = photosBusy + files.length;
-  showPhotoBusy();
-
-  // ย่อทีละรูปตามลำดับ (ไม่ให้เครื่องหน่วง)
-  var index = 0;
-  function next() {
-    if (index >= files.length) { return; }
-    var number = photos.length + 1;
-    compressPhoto(files[index], number).then(function (smallFile) {
-      smallFile._url = URL.createObjectURL(smallFile);
-      photos.push(smallFile);
-      photosBusy = photosBusy - 1;
-      index = index + 1;
-      drawPhotos();
-      showPhotoBusy();
-      next();
-    });
-  }
-  next();
+  drawPhotos();
 });
 
 // ---------- หน้าต่างส่งรูปต่อ ----------
+// ---------- รวมหลายรูปเป็นภาพเดียว (คอลลาจ) ----------
+// LINE ส่งรูปจากเมนูแชร์ทีละรูป จึงรวมเป็นภาพเดียวก่อน จะได้ขึ้นเป็นข้อความเดียว
+var collageFile = null;
+
+function loadImg(url) {
+  return new Promise(function (ok, bad) {
+    var im = new Image();
+    im.onload = function () { ok(im); };
+    im.onerror = bad;
+    im.src = url;
+  });
+}
+
+function buildCollage(list) {
+  return Promise.all(list.map(function (f) { return loadImg(f._url); })).then(function (imgs) {
+    var n = imgs.length;
+    var cols = (n <= 1) ? 1 : (n <= 4 ? 2 : 3);
+    var rows = Math.ceil(n / cols);
+
+    // สัดส่วนช่อง = ค่าเฉลี่ยของรูปทั้งหมด (รูปแนวนอน/แนวตั้งจะไม่ถูกตัดมาก)
+    var sum = 0;
+    for (var i = 0; i < n; i++) { sum += imgs[i].naturalWidth / imgs[i].naturalHeight; }
+    var aspect = sum / n;
+
+    var W = 2048, gap = 8;
+    var cellW = Math.floor((W - gap * (cols + 1)) / cols);
+    var cellH = Math.floor(cellW / aspect);
+    var H = rows * cellH + gap * (rows + 1);
+
+    var cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext("2d");
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+
+    for (var k = 0; k < n; k++) {
+      var r = Math.floor(k / cols);
+      var c = k % cols;
+      // แถวสุดท้ายที่ไม่เต็ม: จัดกึ่งกลาง
+      var inRow = (r === rows - 1) ? (n - r * cols) : cols;
+      var offset = Math.floor((cols - inRow) * (cellW + gap) / 2);
+      var x = gap + c * (cellW + gap) + offset;
+      var y = gap + r * (cellH + gap);
+
+      // ครอปให้เต็มช่อง (cover)
+      var im = imgs[k];
+      var iw = im.naturalWidth, ih = im.naturalHeight;
+      var scale = Math.max(cellW / iw, cellH / ih);
+      var sw = cellW / scale, sh = cellH / scale;
+      var sx = (iw - sw) / 2, sy = (ih - sh) / 2;
+      ctx.drawImage(im, sx, sy, sw, sh, x, y, cellW, cellH);
+    }
+
+    return new Promise(function (ok) {
+      cv.toBlob(function (blob) {
+        ok({ file: new File([blob], "รูปรายงาน.jpg", { type: "image/jpeg" }), url: URL.createObjectURL(blob) });
+      }, "image/jpeg", 0.85);
+    });
+  });
+}
+
 function showPhotoPopup() {
   drawThumbs("photoPopThumbs", false);
-  if (canShareFiles()) {
-    $("photoShareGo").textContent = "📷 ส่งรูป " + photos.length + " รูปเข้า LINE";
-    $("photoPopHint").textContent = "กดปุ่มด้านล่าง → แตะ LINE → เลือกกลุ่มเดิม → ส่ง";
-  } else {
+  collageFile = null;
+  $("collagePrev").style.display = "none";
+  $("photoShareSep").style.display = "none";
+
+  if (!canShareFiles()) {
+    $("photoShareGo").disabled = false;
     $("photoShareGo").textContent = "↩️ กลับไปแชตเพื่อส่งรูปเอง";
     $("photoPopHint").textContent = "เครื่องนี้แชร์รูปจากฟอร์มไม่ได้ — กลับไปที่แชต แล้วกด 📷 ส่งรูปเอง";
+    $("photoPop").style.display = "flex";
+    return;
   }
+
   $("photoPop").style.display = "flex";
+
+  // รูปเดียว: ส่งรูปเดิมเลย
+  if (photos.length === 1) {
+    $("photoShareGo").disabled = false;
+    $("photoShareGo").textContent = "📷 ส่งรูปเข้า LINE";
+    $("photoPopHint").textContent = "กดปุ่มด้านล่าง → แตะ LINE → เลือกกลุ่มเดิม → ส่ง";
+    return;
+  }
+
+  // หลายรูป: รวมเป็นภาพเดียวก่อน (ทำล่วงหน้า กดแล้วแชร์ได้ทันที)
+  $("photoShareGo").disabled = true;
+  $("photoShareGo").textContent = "กำลังรวมรูป...";
+  $("photoPopHint").textContent = "รวม " + photos.length + " รูปเป็นภาพเดียว จะได้ขึ้นในแชตเป็นข้อความเดียว";
+  $("photoShareSep").style.display = "block";
+  $("photoShareSep").textContent = "ส่งแยกทีละรูป (" + photos.length + " รูป)";
+  buildCollage(photos)
+    .then(function (res) {
+      collageFile = res.file;
+      $("collagePrev").src = res.url;
+      $("collagePrev").style.display = "block";
+      $("photoShareGo").disabled = false;
+      $("photoShareGo").textContent = "📷 ส่งรูปรวม (ภาพเดียว) เข้า LINE";
+    })
+    .catch(function () {
+      $("photoShareGo").disabled = false;
+      $("photoShareGo").textContent = "📷 ส่งรูป " + photos.length + " รูปเข้า LINE";
+      $("photoPopHint").textContent = "รวมรูปไม่สำเร็จ — จะส่งแยกทีละรูปแทน";
+    });
 }
 
 function closePhotoPopup() {
   $("photoPop").style.display = "none";
 }
 
-$("photoShareGo").onclick = function () {
-  // แชร์ไม่ได้: กลับไปแชต
-  if (!canShareFiles()) {
-    closePhotoPopup();
-    clearPhotos();
-    if (liffReady && liff.isInClient()) { liff.closeWindow(); }
-    return;
-  }
-  // ยังย่อรูปไม่เสร็จ -> รอก่อน
-  if (photosBusy > 0) {
-    toast("กำลังย่อรูปอยู่ รอสักครู่แล้วกดใหม่");
-    return;
-  }
-  // แชร์ไฟล์ผ่านเมนูของ iPhone (ต้องกดปุ่มนี้เอง iPhone ถึงยอมเปิด)
-  var files = photos.slice();
+// แชร์ไฟล์ผ่านเมนูของ iPhone (ต้องกดปุ่มเอง iPhone ถึงยอมเปิด)
+function sharePhotoFiles(files) {
   navigator.share({ files: files })
     .then(function () {
       toast("ส่งรูปแล้ว ✓");
@@ -3480,6 +3470,26 @@ $("photoShareGo").onclick = function () {
         };
       }
     });
+}
+
+$("photoShareGo").onclick = function () {
+  // แชร์ไม่ได้: กลับไปแชต
+  if (!canShareFiles()) {
+    closePhotoPopup();
+    clearPhotos();
+    if (liffReady && liff.isInClient()) { liff.closeWindow(); }
+    return;
+  }
+  // หลายรูป + รวมเสร็จแล้ว = ส่งภาพรวม / ไม่งั้นส่งรูปเดิม
+  if (collageFile && photos.length > 1) {
+    sharePhotoFiles([collageFile]);
+  } else {
+    sharePhotoFiles(photos.slice());
+  }
+};
+
+$("photoShareSep").onclick = function () {
+  sharePhotoFiles(photos.slice());
 };
 
 $("photoPopClose").onclick = function () {
@@ -3949,7 +3959,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "1 ต.ค. 69 · รุ่นที่ 23";
+var APP_VERSION = "1 ต.ค. 69 · รุ่นที่ 24";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
