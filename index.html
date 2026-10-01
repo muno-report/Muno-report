@@ -80,6 +80,10 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--field);border:1p
 #t{text-align:center;color:var(--gold);min-height:22px}
 .h{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .h span{color:var(--mu)}
+.nm2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nm2 input{width:100%}
+.ranks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ranks .btn{padding:10px 2px;text-align:center}
 .qm{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .qm .btn{padding:10px 0;text-align:center;font-weight:700}
 .dl{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
@@ -123,6 +127,7 @@ body.flash{animation:flashAnim 1s ease-in-out 3}
 .tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px}
 .tab{flex:1;background:transparent;color:var(--mu);border:0;border-radius:10px;padding:12px 4px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;line-height:1.3}
 .tab.on{background:var(--gold);color:var(--on)}
+.tabs .tab:last-child:nth-child(odd){grid-column:span 2}
 .ta{width:100%;background:var(--field);color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;margin-top:8px;resize:vertical}
 .hc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;background:var(--card)}
 .hc summary{cursor:pointer;list-style:none}
@@ -207,7 +212,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     <details open><summary>ส่งรายงาน</summary>
       <ol>
         <li>เปิดฟอร์มจาก<b>ลิงก์ที่ปักไว้ในกลุ่ม</b> (ใต้ปุ่มส่งต้องขึ้น "ส่งตรงเข้าห้องแชตนี้ ✓")</li>
-        <li>เลือกแท็บ: รายงานเวร / ตรวจความพร้อม / ปราการหน้า / ห้องขัง</li>
+        <li>เลือกแท็บ: รายงานการปฏิบัติ / ตรวจความพร้อม / ตรวจปราการและอินทรี / ตรวจห้องขัง / ส่งรายชื่ออินทรี03</li>
         <li>เลือกรายชื่อ ชป. ว.4 ตามหน้า ข้อความจะขึ้นในกรอบ "ข้อความที่จะส่ง"</li>
         <li>กด <b>ส่งเข้ากลุ่มนี้ทันที</b> ตรวจข้อความ แล้วกด ตกลง</li>
       </ol>
@@ -300,10 +305,11 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 </div>
 
 <div class="tabs">
-  <button class="tab on" id="tab1">รายงานเวร</button>
+  <button class="tab on" id="tab1">รายงานการปฏิบัติ</button>
   <button class="tab" id="tab2">ตรวจความพร้อม</button>
-  <button class="tab" id="tab3">ปราการหน้า</button>
-  <button class="tab" id="tab4">ห้องขัง</button>
+  <button class="tab" id="tab3">ตรวจปราการและอินทรี</button>
+  <button class="tab" id="tab4">ตรวจห้องขัง</button>
+  <button class="tab" id="tab5">ส่งรายชื่ออินทรี03</button>
 </div>
 
 <!-- ===== ชุดเวรสำเร็จรูป ===== -->
@@ -536,6 +542,49 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 </div>
 
 </div><!-- /page4 -->
+
+<!-- ================= หน้า 5: รายงานอินทรี03 ================= -->
+<div id="page5" style="display:none">
+
+<div class="c">
+  <div class="l" style="margin-top:0;font-size:18px">รายงานอินทรี03</div>
+  <div class="fixrow" style="margin-top:0"><span>อินทรี 03 คืนนี้</span></div>
+  <p class="hint">ข้อความคงที่ แก้ไม่ได้</p>
+</div>
+
+<div class="c">
+  <div class="fixrow" style="margin-top:0"><span>เวลา 00.01 น.- 03.00 น.</span></div>
+  <div class="lb2">📋 เลือกจากรายชื่อ <i>ทุกคนใช้ร่วมกัน</i></div>
+  <select id="pick1" aria-label="เลือกจากรายชื่อ"></select>
+  <div class="lb2">ยศ <i>เลือกได้ 1 · กดซ้ำเพื่อยกเลิก</i></div>
+  <div class="ranks" id="rank1"></div>
+  <div id="name1Box" style="display:none">
+    <div class="nm2">
+      <div><div class="lb2">ชื่อ</div><input type="text" id="first1" placeholder="เช่น สมชาย" autocomplete="off"></div>
+      <div><div class="lb2">สกุล</div><input type="text" id="last1" placeholder="เช่น ใจดี" autocomplete="off"></div>
+    </div>
+    <button class="btn" id="save1" style="margin-top:8px;width:100%;display:none">＋ บันทึกรายชื่อนี้ให้ทุกคนเห็น</button>
+    <button class="btn small" id="del1" style="margin-top:8px;display:none">🗑 ลบรายชื่อนี้ออกจากรายการ</button>
+  </div>
+</div>
+
+<div class="c">
+  <div class="fixrow" style="margin-top:0"><span>เวลา 03.00 น.- 06.00 น.</span></div>
+  <div class="lb2">📋 เลือกจากรายชื่อ <i>ทุกคนใช้ร่วมกัน</i></div>
+  <select id="pick2" aria-label="เลือกจากรายชื่อ"></select>
+  <div class="lb2">ยศ <i>เลือกได้ 1 · กดซ้ำเพื่อยกเลิก</i></div>
+  <div class="ranks" id="rank2"></div>
+  <div id="name2Box" style="display:none">
+    <div class="nm2">
+      <div><div class="lb2">ชื่อ</div><input type="text" id="first2" placeholder="เช่น สมชาย" autocomplete="off"></div>
+      <div><div class="lb2">สกุล</div><input type="text" id="last2" placeholder="เช่น ใจดี" autocomplete="off"></div>
+    </div>
+    <button class="btn" id="save2" style="margin-top:8px;width:100%;display:none">＋ บันทึกรายชื่อนี้ให้ทุกคนเห็น</button>
+    <button class="btn small" id="del2" style="margin-top:8px;display:none">🗑 ลบรายชื่อนี้ออกจากรายการ</button>
+  </div>
+</div>
+
+</div><!-- /page5 -->
 
 <div class="l" style="margin:18px 4px 8px;font-size:18px">ข้อความที่จะส่ง</div>
 <pre id="o"></pre>
@@ -1117,6 +1166,26 @@ function saveLocal() {
 }
 
 // ---------- รายการรวม (Google Sheet) ----------
+// แยกข้อมูลจากชีต: รายการ ว.4 กับ รายชื่ออินทรี03 (ขึ้นต้นด้วย EAGLE|)
+var eagleShared = [];   // [{ id, rank, first, last }]
+function applySharedData(data) {
+  var v4items = [];
+  var eagles = [];
+  var items = data.items || [];
+  for (var i = 0; i < items.length; i++) {
+    var t = String(items[i].text || "");
+    if (t.indexOf("EAGLE|") === 0) {
+      var parts = t.split("|");
+      eagles.push({ id: items[i].id, rank: parts[1] || "", first: parts[2] || "", last: parts[3] || "" });
+    } else {
+      v4items.push(items[i]);
+    }
+  }
+  eagleShared = eagles;
+  rebuildV4(v4items, data.hidden || []);
+  if (typeof drawEaglePicks === "function") { drawEaglePicks(); }
+}
+
 function loadShared() {
   if (!V4_API_URL) {
     $("v4status").textContent = "รายการที่เพิ่ม/ลบ จะจำไว้เฉพาะเครื่องนี้";
@@ -1127,7 +1196,7 @@ function loadShared() {
   fetch(V4_API_URL)
     .then(function (res) { return res.json(); })
     .then(function (data) {
-      rebuildV4(data.items || [], data.hidden || []);
+      applySharedData(data);
       $("v4status").textContent = "รายการใช้ร่วมกันทุกเครื่อง ✓";
     })
     .catch(function () {
@@ -1139,7 +1208,7 @@ function postShared(payload) {
   return fetch(V4_API_URL, { method: "POST", body: JSON.stringify(payload) })
     .then(function (res) { return res.json(); })
     .then(function (data) {
-      rebuildV4(data.items || [], data.hidden || []);
+      applySharedData(data);
       return data;
     });
 }
@@ -1314,6 +1383,7 @@ function update() {
   if (typeof saveLast2 === "function") { saveLast2(); }   // (หน้า 2)
   if (typeof saveLast3 === "function") { saveLast3(); }   // (หน้า 3)
   if (typeof saveLast4 === "function") { saveLast4(); }   // (หน้า 4)
+  if (typeof saveLast5 === "function") { saveLast5(); }   // (หน้า 5)
 }
 
 // ================== ส่ง LINE / คัดลอก / ประวัติ ==================
@@ -1401,7 +1471,7 @@ document.addEventListener("visibilitychange", function () {
 
 // หลังส่งข้อความสำเร็จ: มีรูป -> ส่งรูปต่อ / ไม่มีรูป -> ถาม "จบการรายงานครับ"
 function afterSent(isDirect) {
-  if (photos.length > 0) {
+  if (photos.length > 0 && currentPage !== 5) {   // อินทรี03 ไม่ส่งรูป
     showPhotoPopup();
     return;
   }
@@ -1977,17 +2047,206 @@ function applyState4(st) {
   drawP4();
 }
 
+// ================== หน้า 5: รายงานอินทรี03 ==================
+
+var P5_RANKS = ["ด.ต.", "จ.ส.ต.", "ส.ต.อ.", "ส.ต.ท.", "ส.ต.ต."];
+var P5_INDENT = "       ";   // ย่อหน้าบรรทัดชื่อ (7 ช่อง)
+var p5 = { r1: "", r2: "" };   // ยศที่เลือก ช่วงที่ 1 และ 2
+
+// ปุ่มยศ เลือกได้ 1 (กดซ้ำ = ยกเลิก)
+function drawRanks(slot) {
+  var box = $("rank" + slot);
+  box.innerHTML = "";
+  var cur = p5["r" + slot];
+  for (var i = 0; i < P5_RANKS.length; i++) {
+    var r = P5_RANKS[i];
+    var b = document.createElement("button");
+    b.className = "btn" + (cur === r ? " on" : "");
+    b.textContent = (cur === r ? "☑️ " : "") + r;
+    b.setAttribute("data-r", r);
+    b.onclick = function () {
+      var v = this.getAttribute("data-r");
+      p5["r" + slot] = (p5["r" + slot] === v) ? "" : v;
+      drawRanks(slot);
+      slotChanged(slot);
+      if (p5["r" + slot] && !$("first" + slot).value) { $("first" + slot).focus(); }
+    };
+    box.appendChild(b);
+  }
+  // เลือกยศแล้ว ถึงจะให้เขียนชื่อ
+  $("name" + slot + "Box").style.display = cur ? "block" : "none";
+}
+
+// รายชื่อที่บันทึกไว้ (เรียงตามยศ แล้วตามชื่อ)
+function sortedEagles() {
+  var list = eagleShared.slice();
+  list.sort(function (x, y) {
+    var rx = P5_RANKS.indexOf(x.rank), ry = P5_RANKS.indexOf(y.rank);
+    if (rx !== ry) { return rx - ry; }
+    return (x.first + x.last).localeCompare(y.first + y.last, "th");
+  });
+  return list;
+}
+
+function eagleLabel(e) { return e.rank + e.first + (e.last ? " " + e.last : ""); }
+
+// หาว่าช่องนี้ตรงกับรายชื่อที่บันทึกไว้ไหม
+function findEagle(slot) {
+  var r = p5["r" + slot], f = $("first" + slot).value.trim(), l = $("last" + slot).value.trim();
+  for (var i = 0; i < eagleShared.length; i++) {
+    var e = eagleShared[i];
+    if (e.rank === r && e.first === f && e.last === l) { return e; }
+  }
+  return null;
+}
+
+// กล่องเลือกจากรายชื่อ
+function drawEaglePicks() {
+  var list = sortedEagles();
+  for (var s = 1; s <= 2; s++) {
+    var sel = $("pick" + s);
+    sel.innerHTML = "";
+    sel.add(new Option(list.length ? "— เลือกจากรายชื่อ (" + list.length + " คน) —" : "— ยังไม่มีรายชื่อที่บันทึกไว้ —", ""));
+    for (var i = 0; i < list.length; i++) { sel.add(new Option(eagleLabel(list[i]), list[i].id)); }
+    var m = findEagle(s);
+    sel.value = m ? m.id : "";
+    updateSlotButtons(s);
+  }
+}
+
+// แสดง/ซ่อนปุ่มบันทึก-ลบ
+function updateSlotButtons(slot) {
+  var filled = p5["r" + slot] && $("first" + slot).value.trim() && $("last" + slot).value.trim();
+  var m = findEagle(slot);
+  $("save" + slot).style.display = (filled && !m && V4_API_URL) ? "block" : "none";
+  $("del" + slot).style.display = (m && V4_API_URL) ? "inline-block" : "none";
+}
+
+function slotChanged(slot) {
+  var m = findEagle(slot);
+  $("pick" + slot).value = m ? m.id : "";
+  updateSlotButtons(slot);
+  update();
+}
+
+// เลือกจากรายชื่อ -> ใส่ยศ ชื่อ สกุล ให้
+function onPick(slot) {
+  var id = $("pick" + slot).value;
+  if (!id) { return; }
+  for (var i = 0; i < eagleShared.length; i++) {
+    if (String(eagleShared[i].id) === String(id)) {
+      p5["r" + slot] = eagleShared[i].rank;
+      $("first" + slot).value = eagleShared[i].first;
+      $("last" + slot).value = eagleShared[i].last;
+    }
+  }
+  drawRanks(slot);
+  slotChanged(slot);
+}
+
+// บันทึกรายชื่อให้ทุกคนเห็น (เก็บในชีตแผ่น v4 ขึ้นต้นด้วย EAGLE|)
+function saveEagle(slot) {
+  var r = p5["r" + slot], f = $("first" + slot).value.trim(), l = $("last" + slot).value.trim();
+  if (!r || !f || !l) { toast("เลือกยศ และเขียนชื่อ สกุล ให้ครบก่อน"); return; }
+  $("save" + slot).disabled = true;
+  toast("กำลังบันทึก...");
+  postShared({ action: "add", text: "EAGLE|" + r + "|" + f + "|" + l, desc: "รายชื่ออินทรี03" })
+    .then(function () { toast("บันทึกแล้ว ✓ ทุกคนเลือกชื่อนี้ได้"); })
+    .catch(function () { toast("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"); })
+    .then(function () { $("save" + slot).disabled = false; });
+}
+
+function deleteEagle(slot) {
+  var m = findEagle(slot);
+  if (!m) { return; }
+  if (!confirm("ลบ " + eagleLabel(m) + " ออกจากรายการ? (ทุกเครื่องจะไม่เห็นชื่อนี้ในรายการ)")) { return; }
+  toast("กำลังลบ...");
+  postShared({ action: "delete", id: m.id })
+    .then(function () { toast("ลบออกจากรายการแล้ว"); })
+    .catch(function () { toast("ลบไม่สำเร็จ ลองใหม่อีกครั้ง"); });
+}
+
+[1, 2].forEach(function (slot) {
+  $("pick" + slot).addEventListener("change", function () { onPick(slot); });
+  $("first" + slot).addEventListener("input", function () { slotChanged(slot); });
+  $("last" + slot).addEventListener("input", function () { slotChanged(slot); });
+  $("save" + slot).onclick = function () { saveEagle(slot); };
+  $("del" + slot).onclick = function () { deleteEagle(slot); };
+});
+
+function slotLine(slot) {
+  var r = p5["r" + slot];
+  var f = $("first" + slot).value.trim();
+  var l = $("last" + slot).value.trim();
+  if (!r && !f && !l) { return ""; }
+  return P5_INDENT + r + f + (l ? " " + l : "");   // เช่น ด.ต.สมชาย ใจดี
+}
+
+function buildMessage5() {
+  var lines = [];
+  lines.push("อินทรี 03 คืนนี้");
+  lines.push("เวลา 00.01 น.- 03.00 น.");
+  lines.push(slotLine(1) || P5_INDENT + "…");
+  lines.push("เวลา 03.00 น.- 06.00 น.");
+  lines.push(slotLine(2) || P5_INDENT + "…");
+  return lines.join("\n");
+}
+
+function checkForm5() {
+  for (var s = 1; s <= 2; s++) {
+    var t = (s === 1) ? "00.01-03.00" : "03.00-06.00";
+    if (!p5["r" + s]) { toast("กรุณาเลือกยศ ช่วง " + t); return false; }
+    if (!$("first" + s).value.trim()) { toast("กรุณาเขียนชื่อ ช่วง " + t); $("first" + s).focus(); return false; }
+    if (!$("last" + s).value.trim()) { toast("กรุณาเขียนสกุล ช่วง " + t); $("last" + s).focus(); return false; }
+  }
+  return true;
+}
+
+function getState5() {
+  return { r1: p5.r1, f1: $("first1").value, l1: $("last1").value,
+           r2: p5.r2, f2: $("first2").value, l2: $("last2").value };
+}
+function applyState5(st) {
+  st = st || {};
+  // ค่าจากรุ่นก่อน (ชื่อ-สกุลช่องเดียว) แยกเป็น 2 ช่องให้
+  [1, 2].forEach(function (s) {
+    if (st["n" + s] && st["f" + s] === undefined) {
+      var parts = String(st["n" + s]).trim().split(/\s+/);
+      st["f" + s] = parts.shift() || "";
+      st["l" + s] = parts.join(" ");
+    }
+  });
+  p5.r1 = st.r1 || "";
+  p5.r2 = st.r2 || "";
+  $("first1").value = st.f1 || ""; $("last1").value = st.l1 || "";
+  $("first2").value = st.f2 || ""; $("last2").value = st.l2 || "";
+  drawRanks(1);
+  drawRanks(2);
+  drawEaglePicks();
+}
+function saveLast5() {
+  if (restoring !== false) { return; }
+  try { localStorage.setItem("lastForm5", JSON.stringify(getState5())); } catch (e) {}
+}
+function restoreLast5() {
+  var st = null;
+  try { st = JSON.parse(localStorage.getItem("lastForm5") || "null"); } catch (e) {}
+  applyState5(st);
+}
+
 // ---------- ตัวเลือกหน้า (ใช้ร่วมกันทุกหน้า) ----------
 
 // ค่าที่เลือกในฟอร์มของหน้าที่เปิดอยู่ (ใช้เก็บในประวัติ เพื่อ "ใช้ซ้ำ")
 function getPageState() {
+  if (currentPage === 5) { return getState5(); }
   if (currentPage === 4) { return getState4(); }
   if (currentPage === 3) { return getState3(); }
   if (currentPage === 2) { return getState2(); }
   return getFormState();
 }
 function applyPageState(page, st) {
-  if (page === 4) { applyState4(st); }
+  if (page === 5) { applyState5(st); }
+  else if (page === 4) { applyState4(st); }
   else if (page === 3) { applyState3(st); }
   else if (page === 2) { applyState2(st); }
   else { applyFormState(st); }
@@ -2034,7 +2293,7 @@ function setNowForPage(force) {
   } else if (currentPage === 3) {
     if (force || !typed.d3) { $("d3").value = ymd; date3FromPicker(); typed.d3 = false; }
     if (force || !typed.t3) { $("hh3").value = hh; $("mm3").value = mm; time3FromPicker(); typed.t3 = false; }
-  } else {
+  } else if (currentPage === 4) {
     if (force || !typed.d4) { $("d4").value = ymd; date4FromPicker(); typed.d4 = false; }
     if (force || !typed.t4) { $("hh4").value = hh; $("mm4").value = mm; time4FromPicker(); typed.t4 = false; }
   }
@@ -2044,22 +2303,29 @@ function refreshTimeBeforeSend() {
   if ($("useNow").checked) { setNowForPage(false); }
 }
 function buildMessage() {
+  if (currentPage === 5) { return buildMessage5(); }
   if (currentPage === 4) { return buildMessage4(); }
   if (currentPage === 3) { return buildMessage3(); }
   if (currentPage === 2) { return buildMessage2(); }
   return buildMessage1();
 }
 function checkForm() {
+  if (currentPage === 5) { return checkForm5(); }
   if (currentPage === 4) { return checkForm4(); }
   if (currentPage === 3) { return checkForm3(); }
   if (currentPage === 2) { return checkForm2(); }
   return checkForm1();
 }
 function histStamp() {
-  if (currentPage === 4) { return "[ห้องขัง] " + $("d4Text").value + " " + $("t4Text").value + " น."; }
-  if (currentPage === 3) { return "[ปราการหน้า] " + $("d3Text").value + " " + $("t3Text").value + " น."; }
+  if (currentPage === 5) {
+    var nw = new Date();
+    return "[ส่งรายชื่ออินทรี03] " + pad2(nw.getDate()) + "/" + pad2(nw.getMonth() + 1) + "/" + String(nw.getFullYear() + 543).slice(-2)
+         + " " + pad2(nw.getHours()) + "." + pad2(nw.getMinutes()) + " น.";
+  }
+  if (currentPage === 4) { return "[ตรวจห้องขัง] " + $("d4Text").value + " " + $("t4Text").value + " น."; }
+  if (currentPage === 3) { return "[ตรวจปราการและอินทรี] " + $("d3Text").value + " " + $("t3Text").value + " น."; }
   if (currentPage === 2) { return "[ตรวจความพร้อม] " + $("d2Text").value + " " + $("t2Text").value + " น."; }
-  return "[รายงานเวร] " + $("dText").value + " " + $("tText").value + " น.";
+  return "[รายงานการปฏิบัติ] " + $("dText").value + " " + $("tText").value + " น.";
 }
 
 function showPage(n) {
@@ -2068,10 +2334,13 @@ function showPage(n) {
   $("page2").style.display = (n === 2) ? "block" : "none";
   $("page3").style.display = (n === 3) ? "block" : "none";
   $("page4").style.display = (n === 4) ? "block" : "none";
+  $("page5").style.display = (n === 5) ? "block" : "none";
+  $("photoCard").style.display = (n === 5) ? "none" : "block";   // อินทรี03 ไม่ใช้รูป
   $("tab1").classList.toggle("on", n === 1);
   $("tab2").classList.toggle("on", n === 2);
   $("tab3").classList.toggle("on", n === 3);
   $("tab4").classList.toggle("on", n === 4);
+  $("tab5").classList.toggle("on", n === 5);
   try { localStorage.setItem("lastPage", String(n)); } catch (e) {}
   if (typeof drawPresets === "function") { drawPresets(); }
   update();
@@ -2081,6 +2350,7 @@ $("tab1").onclick = function () { showPage(1); };
 $("tab2").onclick = function () { showPage(2); };
 $("tab3").onclick = function () { showPage(3); };
 $("tab4").onclick = function () { showPage(4); };
+$("tab5").onclick = function () { showPage(5); };
 
 // ================== จำค่า / ชุดเวร / ล้างฟอร์ม ==================
 
@@ -2200,10 +2470,12 @@ function presetSummary(st) {
   if (st.opt === 1) { parts.push("อินทรี01+03"); }
   if (st.opt === 0 && st.d) { parts.push("อินทรี01"); }
   if (st.e) { parts.push(st.has === 1 ? "ผู้ต้องหา " + st.count + " ราย" : "ไม่มีผู้ต้องหา"); }
+  if (st.r1 || st.f1 || st.n1) { parts.push("1) " + (st.r1 || "") + (st.f1 || st.n1 || "") + (st.l1 ? " " + st.l1 : "")); }
+  if (st.r2 || st.f2 || st.n2) { parts.push("2) " + (st.r2 || "") + (st.f2 || st.n2 || "") + (st.l2 ? " " + st.l2 : "")); }
   return parts.join(" · ") || "ว่าง";
 }
 
-var PAGE_NAMES = { 1: "รายงานเวร", 2: "ตรวจความพร้อม", 3: "ปราการหน้า", 4: "ห้องขัง" };
+var PAGE_NAMES = { 1: "รายงานการปฏิบัติ", 2: "ตรวจความพร้อม", 3: "ตรวจปราการและอินทรี", 4: "ตรวจห้องขัง", 5: "ส่งรายชื่ออินทรี03" };
 
 // แสดงเฉพาะชุดของหน้าที่เปิดอยู่
 function drawPresets() {
@@ -2280,6 +2552,7 @@ function suggestPresetName(st) {
   if (currentPage === 1) { return "ชุด ชป." + (st.patrol || ""); }
   if (currentPage === 2) { return "ตรวจความพร้อม ชป." + (st.sp || st.jj || ""); }
   if (currentPage === 3) { return "ปราการหน้า"; }
+  if (currentPage === 5) { return "อินทรี03 " + (st.r1 || "") + (st.f1 || ""); }
   return "ห้องขัง";
 }
 
@@ -2318,8 +2591,10 @@ $("clearAll").onclick = function () {
     applyState2({ c: [], sp: 0, jj: 0, note: NOTE_DEFAULT, show: { check: true, note: true, normal2: true, end2: true } });
   } else if (currentPage === 3) {
     applyState3({ d: [], opt: 0, show: { normal3: true, end3: true } });
-  } else {
+  } else if (currentPage === 4) {
     applyState4({ e: [], has: 0, count: 1, show: { normal4: true, end4: true } });
+  } else {
+    applyState5({});
   }
   setNowForPage(true);
   update();
@@ -3393,7 +3668,7 @@ function drawDaily() {
     var r = document.createElement("div");
     r.className = "r";
     var sel = document.createElement("select");
-    for (var pg = 1; pg <= 4; pg++) { sel.add(new Option(PAGE_NAMES[pg], String(pg))); }
+    for (var pg = 1; pg <= 5; pg++) { sel.add(new Option(PAGE_NAMES[pg], String(pg))); }
     sel.value = String(daily[i].page);
     sel.setAttribute("data-i", i);
     sel.setAttribute("aria-label", "หน้ารายงาน");
@@ -3476,7 +3751,7 @@ function pageFromUrl() {
       p = new URLSearchParams(q.get("liff.state").replace(/^[^?]*\?/, "")).get("page");
     }
     p = Number(p);
-    if (p >= 1 && p <= 4) { return p; }
+    if (p >= 1 && p <= 5) { return p; }
   } catch (e) {}
   return 0;
 }
@@ -3517,7 +3792,7 @@ function loadNames() {
         // เปิดครั้งแรก: ใส่ค่าครั้งก่อนกลับเข้าฟอร์มหลังมีรายชื่อแล้ว
         hadNamesCache = true;
         restoring = true;
-        restoreLastForm(); restoreLast2(); restoreLast3(); restoreLast4();
+        restoreLastForm(); restoreLast2(); restoreLast3(); restoreLast4(); restoreLast5();
         restoring = false;
         update();
       } else if (changed) {
@@ -3576,7 +3851,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "1 ต.ค. 69 · รุ่นที่ 19";
+var APP_VERSION = "1 ต.ค. 69 · รุ่นที่ 23";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
@@ -3606,6 +3881,7 @@ setNow3();
 restoreLast3();
 setNow4();
 restoreLast4();
+restoreLast5();
 // จำตัวเลือก "ใช้วันเวลาปัจจุบันตอนกดส่ง"
 try { if (localStorage.getItem("useNow") === "0") { $("useNow").checked = false; } } catch (e) {}
 $("useNow").addEventListener("change", function () {
@@ -3615,7 +3891,7 @@ $("useNow").addEventListener("change", function () {
 restoring = false;
 var lastPage = 1;
 try { lastPage = Number(localStorage.getItem("lastPage")) || 1; } catch (e) {}
-if (lastPage !== 2 && lastPage !== 3 && lastPage !== 4) { lastPage = 1; }
+if (lastPage < 1 || lastPage > 5) { lastPage = 1; }
 drawDaily();
 // ลำดับ: ลิงก์ ?page= > ช่วงเวลาแจ้งเตือน > หน้าที่ใช้ล่าสุด
 var startPage = pageFromUrl() || pageByTime() || lastPage;
