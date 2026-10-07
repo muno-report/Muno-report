@@ -635,7 +635,10 @@ var V4_LIST = [
   { text: "ตรวจสถานที่ราชการ สนามกีฬา อบต.มูโนะ", desc: D2 },
   { text: "ตรวจสถานที่ราชการ กศน.ตำบลมูโนะ", desc: D2 },
   { text: "ว.43 (popup) สามแยกกศน.ตำบลมูโนะ", desc: D1 },
-  { text: "ตรวจสถานที่ราชการ โรงพยาบาลส่งเสริมสุขภาพตำบลมูโนะ", desc: D2 }
+  { text: "ตรวจสถานที่ราชการ โรงพยาบาลส่งเสริมสุขภาพตำบลมูโนะ", desc: D2 },
+  { text: "ตรวจเยี่ยม อบต.มูโนะ", desc: D2 },
+  { text: "ว.43 เส้นทางสายรองในตลาดมูโนะ", desc: D1 },
+  { text: "แสดงกำลัง เส้นทางสายหลักสุไหงโก-ลก-ตากใบ", desc: D2 }
 ];
 
 // ================== สถานะของหน้า ==================
@@ -1065,6 +1068,13 @@ function rebuildV4(customItems, hiddenTexts) {
     V4_LIST.push({ text: BASE_V4[b].text, desc: BASE_V4[b].desc, base: true });
   }
   for (var c = 0; c < customItems.length; c++) {
+    // ข้ามรายการในชีตที่ชื่อซ้ำกับรายการหลักในไฟล์ (กันขึ้นซ้ำ 2 อัน)
+    var cText = String(customItems[c].text || "").replace(/\s+/g, " ").trim();
+    var dup = false;
+    for (var x = 0; x < V4_LIST.length; x++) {
+      if (V4_LIST[x].base && V4_LIST[x].text.replace(/\s+/g, " ").trim() === cText) { dup = true; break; }
+    }
+    if (dup) { continue; }
     V4_LIST.push({ id: customItems[c].id, text: customItems[c].text, desc: customItems[c].desc, custom: true });
   }
 
@@ -2770,7 +2780,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "2 ต.ค. 69 · รุ่นที่ 29";
+var APP_VERSION = "7 ต.ค. 69 · รุ่นที่ 30";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
