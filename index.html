@@ -162,6 +162,23 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 .sch .btns .btn{flex:1 1 45%;padding:8px 6px;font-size:14px}
 .sch details{margin-top:6px;font-size:14px}
 .sch pre{margin:6px 0 0;font-size:13px}
+
+/* หน้า 6: สแกนบัตร / ทะเบียนรถ */
+.scanBtn{display:block;text-align:center;width:100%;padding:13px 10px}
+.scanImg{display:block;max-width:100%;max-height:200px;margin:10px auto 0;border-radius:10px;border:1px solid var(--line)}
+.scanTools{display:flex;gap:6px;margin-top:8px}
+.scanTools .btn{flex:1;padding:8px 6px;font-size:14px}
+.chk{font-size:14px;margin-top:6px;font-weight:700}
+.chk.ok{color:var(--ok)}
+.chk.no{color:var(--no)}
+.chk.mu{color:var(--mu);font-weight:400}
+.alts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.alts .btn{padding:6px 10px;font-size:14px}
+.bigIn{font-size:20px!important;font-weight:700;letter-spacing:1px;text-align:center}
+.copyRow{display:flex;gap:8px;align-items:stretch}
+.copyRow input{flex:1;min-width:0}
+.copyBtn{flex:none;padding:8px 12px;font-size:15px;white-space:nowrap}
+.copyBtn.done{background:var(--ok)!important;border-color:var(--ok)!important;color:#fff!important}
 </style>
 </head>
 <body>
@@ -192,7 +209,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     <details open><summary>ส่งรายงาน</summary>
       <ol>
         <li>เปิดฟอร์มจาก<b>ลิงก์ที่ปักไว้ในกลุ่ม</b> (ใต้ปุ่มส่งต้องขึ้น "ส่งตรงเข้าห้องแชตนี้ ✓")</li>
-        <li>เลือกแท็บ: รายงานการปฏิบัติ / ตรวจความพร้อม / ตรวจปราการและอินทรี / ตรวจห้องขัง / ส่งรายชื่ออินทรี03</li>
+        <li>เลือกแท็บ: รายงานการปฏิบัติ / ตรวจความพร้อม / ตรวจปราการและอินทรี / ตรวจห้องขัง / ส่งรายชื่ออินทรี03 / สแกนบัตร / ทะเบียนรถ</li>
         <li>เลือกรายชื่อ ชป. ว.4 ตามหน้า ข้อความจะขึ้นในกรอบ "ข้อความที่จะส่ง"</li>
         <li>กด <b>📤 ส่งรายงาน</b> ตรวจข้อความ กด ตกลง แล้วเลือกกลุ่มที่จะส่ง</li>
       </ol>
@@ -223,6 +240,15 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
       </ul>
     </details>
 
+
+    <details><summary>สแกนบัตร / ทะเบียนรถ</summary>
+      <ul>
+        <li>กด <b>📷 ถ่ายรูป / เลือกรูป</b> แอปจะอ่านเลขบัตร หรือหมวด-เลขทะเบียนและจังหวัดให้เอง</li>
+        <li>เลขบัตรขึ้น <b>✓ ถูกต้อง</b> = ครบ 13 หลักและหลักสุดท้ายตรงตามสูตร · ขึ้น ✗ ให้ตรวจกับบัตรแล้วแก้ในช่อง</li>
+        <li>อ่านไม่ได้: ถ่ายใหม่ให้ใกล้และตรงขึ้น หรือกด ↻ หมุนรูป หรือพิมพ์เอง</li>
+        <li>ข้อมูลหน้านี้ไม่ถูกเก็บไว้ในเครื่อง · ถ่ายรูปใหม่ = อ่านใหม่แทนของเดิม</li>
+      </ul>
+    </details>
 
     <details><summary>จบการรายงานครับ</summary>
       <p>ติ๊ก <b>หลังส่งเสร็จ ให้กดส่ง "จบการรายงานครับ"</b> ไว้ ส่งข้อความ (และรูป) ครบแล้ว จะมีปุ่ม <b>✅ จบการรายงานครับ</b> ให้กดส่งปิดท้าย</p>
@@ -261,6 +287,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
   <button class="tab" id="tab3">ตรวจปราการและอินทรี</button>
   <button class="tab" id="tab4">ตรวจห้องขัง</button>
   <button class="tab" id="tab5">ส่งรายชื่ออินทรี03</button>
+  <button class="tab" id="tab6">สแกนบัตร / ทะเบียนรถ</button>
 </div>
 
 <!-- ===== ชุดเวรสำเร็จรูป ===== -->
@@ -563,7 +590,50 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 
 </div><!-- /page5 -->
 
-<div class="l" style="margin:18px 4px 8px;font-size:18px">ข้อความที่จะส่ง</div>
+<!-- ================= หน้า 6: สแกนบัตร / ทะเบียนรถ ================= -->
+<div id="page6" style="display:none">
+
+<div class="c">
+  <div class="l" style="margin-top:0;font-size:18px">🪪 เลขบัตรประชาชน</div>
+  <p class="hint" style="margin-top:0">ถ่ายด้านหน้าบัตรให้ชัด ตรง เต็มกรอบ ไม่มีแสงสะท้อน · อ่านในเครื่อง ไม่ส่งรูปออกไปไหน</p>
+  <label class="btn on scanBtn">📷 ถ่ายรูป / เลือกรูปบัตร<input type="file" accept="image/*" id="idFile" hidden></label>
+  <img id="idImg" class="scanImg" alt="รูปบัตร" style="display:none">
+  <div class="scanTools" id="idTools" style="display:none">
+    <button class="btn" id="idRot">↻ หมุนรูปแล้วอ่านใหม่</button>
+    <button class="btn" id="idRescan">อ่านอีกครั้ง</button>
+  </div>
+  <p class="hint" id="idStatus"></p>
+  <div class="lb2">เลขบัตร 13 หลัก <i>แก้หรือพิมพ์เองได้</i></div>
+  <div class="copyRow">
+    <input type="text" id="idNum" class="bigIn" inputmode="numeric" autocomplete="off" placeholder="x-xxxx-xxxxx-xx-x">
+    <button class="btn copyBtn" id="idCopy">📋 คัดลอก</button>
+  </div>
+  <div class="chk mu" id="idChk">ยังไม่มีเลขบัตร</div>
+  <div class="alts" id="idAlts"></div>
+</div>
+
+<div class="c">
+  <div class="l" style="margin-top:0;font-size:18px">🚗 ป้ายทะเบียนรถ</div>
+  <p class="hint" style="margin-top:0">ถ่ายป้ายให้ตรง เต็มกรอบ เห็นชื่อจังหวัด</p>
+  <label class="btn on scanBtn">📷 ถ่ายรูป / เลือกรูปป้าย<input type="file" accept="image/*" id="plFile" hidden></label>
+  <img id="plImg" class="scanImg" alt="รูปป้ายทะเบียน" style="display:none">
+  <div class="scanTools" id="plTools" style="display:none">
+    <button class="btn" id="plRot">↻ หมุนรูปแล้วอ่านใหม่</button>
+    <button class="btn" id="plRescan">อ่านอีกครั้ง</button>
+  </div>
+  <p class="hint" id="plStatus"></p>
+  <div class="lb2">ทะเบียนรถ และจังหวัด <i>แก้หรือพิมพ์เองได้</i></div>
+  <div class="copyRow">
+    <input type="text" id="plNum" class="bigIn" autocomplete="off" placeholder="เช่น กข 1234 นราธิวาส">
+    <button class="btn copyBtn" id="plCopy">📋 คัดลอก</button>
+  </div>
+  <div class="chk mu" id="plChk">ยังไม่มีทะเบียนรถ</div>
+</div>
+
+
+</div><!-- /page6 -->
+
+<div class="l" id="oLabel" style="margin:18px 4px 8px;font-size:18px">ข้อความที่จะส่ง</div>
 <pre id="o"></pre>
 <button class="go" id="pick">📤 ส่งรายงาน <span style="font-weight:400;font-size:14px">(เลือกกลุ่ม)</span></button>
 <button class="go alt" id="cp">คัดลอกข้อความ</button>
@@ -1447,7 +1517,7 @@ document.addEventListener("visibilitychange", function () {
 
 // หลังส่งข้อความสำเร็จ: มีรูป -> ส่งรูปต่อ / ไม่มีรูป -> ถาม "จบการรายงานครับ"
 function afterSent(isDirect) {
-  if (currentPage === 5) { return; }   // ส่งรายชื่ออินทรี03 ไม่ต้องส่ง "จบการรายงานครับ"
+  if (currentPage >= 5) { return; }   // ส่งรายชื่ออินทรี03 / ขอตรวจสอบ ไม่ต้องส่ง "จบการรายงานครับ"
   if ($("finishOn").checked) { showFinishPopup(); }
 }
 
@@ -1614,7 +1684,7 @@ $("pick").onclick = function () {
   refreshTimeBeforeSend();
   var text = buildMessage();
   if (!confirmSend(text)) { return; }
-  saveHistory(text, getPageState());
+  if (currentPage !== 6) { saveHistory(text, getPageState()); }   // หน้าสแกน: ไม่เก็บเลขบัตร/ทะเบียนในประวัติ
   sendByPicker(text);
 };
 
@@ -2184,6 +2254,449 @@ function restoreLast5() {
   applyState5(st);
 }
 
+// ================== หน้า 6: สแกนบัตร / ทะเบียนรถ ==================
+// อ่านตัวอักษรจากรูปด้วย Tesseract.js (ทำงานในเครื่อง ไม่ส่งรูปออกไป)
+// ข้อมูลหน้านี้ไม่บันทึกลงเครื่อง ไม่เก็บในประวัติ และไม่มีชุดสำเร็จรูป
+
+var OCR_SCRIPT = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+var P6_INDENT = "       ";   // ย่อหน้าบรรทัดเลขบัตร / ทะเบียน (7 ช่อง)
+
+var PROVINCES = ["กรุงเทพมหานคร","กระบี่","กาญจนบุรี","กาฬสินธุ์","กำแพงเพชร","ขอนแก่น","จันทบุรี","ฉะเชิงเทรา",
+  "ชลบุรี","ชัยนาท","ชัยภูมิ","ชุมพร","เชียงราย","เชียงใหม่","ตรัง","ตราด","ตาก","นครนายก","นครปฐม","นครพนม",
+  "นครราชสีมา","นครศรีธรรมราช","นครสวรรค์","นนทบุรี","นราธิวาส","น่าน","บึงกาฬ","บุรีรัมย์","ปทุมธานี",
+  "ประจวบคีรีขันธ์","ปราจีนบุรี","ปัตตานี","พระนครศรีอยุธยา","พะเยา","พังงา","พัทลุง","พิจิตร","พิษณุโลก",
+  "เพชรบุรี","เพชรบูรณ์","แพร่","ภูเก็ต","มหาสารคาม","มุกดาหาร","แม่ฮ่องสอน","ยโสธร","ยะลา","ร้อยเอ็ด","ระนอง",
+  "ระยอง","ราชบุรี","ลพบุรี","ลำปาง","ลำพูน","เลย","ศรีสะเกษ","สกลนคร","สงขลา","สตูล","สมุทรปราการ",
+  "สมุทรสงคราม","สมุทรสาคร","สระแก้ว","สระบุรี","สิงห์บุรี","สุโขทัย","สุพรรณบุรี","สุราษฎร์ธานี","สุรินทร์",
+  "หนองคาย","หนองบัวลำภู","อ่างทอง","อำนาจเจริญ","อุดรธานี","อุตรดิตถ์","อุทัยธานี","อุบลราชธานี"];
+
+var scan = { id: { rot: 0, src: null }, pl: { rot: 0, src: null } };
+var ocrWorker = null;
+var ocrLoading = null;
+
+// เลขไทย ๐-๙ -> 0-9 และ "ํา" -> "ำ"
+function normThai(s) {
+  return String(s || "")
+    .replace(/[๐-๙]/g, function (c) { return String(c.charCodeAt(0) - 0x0E50); })
+    .replace(/ํา/g, "ำ");
+}
+
+// ---------- เลขบัตรประชาชน ----------
+function idDigits(s) { return normThai(s).replace(/\D/g, ""); }
+
+// หลักที่ 13 = (11 - (ผลรวม หลักที่ i × (14 - i)) mod 11) mod 10
+function idValid(d) {
+  if (!/^\d{13}$/.test(d)) { return false; }
+  var sum = 0;
+  for (var i = 0; i < 12; i++) { sum += Number(d.charAt(i)) * (13 - i); }
+  return (11 - (sum % 11)) % 10 === Number(d.charAt(12));
+}
+
+function idFormat(d) {
+  if (d.length !== 13) { return d; }
+  return d.charAt(0) + "-" + d.slice(1, 5) + "-" + d.slice(5, 10) + "-" + d.slice(10, 12) + "-" + d.charAt(12);
+}
+
+// หาเลข 13 หลักจากข้อความที่อ่านได้ (ตัว "ใ ไ l I |" ที่อยู่ในกลุ่มตัวเลข มักเป็นเลข 1 ที่อ่านผิด)
+function findIdInText(text) {
+  var t = normThai(text);
+  var sources = t.split("\n").concat([t.replace(/\n/g, " ")]);
+  var valid = [];
+  var fallback = "";
+  for (var s = 0; s < sources.length; s++) {
+    var src = sources[s].replace(/[ใไlI|!]/g, "1").replace(/[Oo]/g, "0");
+    var runs = src.match(/\d(?:[\s\-.]*\d){12,}/g) || [];
+    for (var r = 0; r < runs.length; r++) {
+      var d = runs[r].replace(/\D/g, "");
+      if (!fallback && d.length === 13) { fallback = d; }
+      for (var k = 0; k + 13 <= d.length; k++) {
+        var w = d.substr(k, 13);
+        if (idValid(w) && valid.indexOf(w) < 0) { valid.push(w); }
+      }
+    }
+  }
+  return { valid: valid, fallback: fallback };
+}
+
+function drawIdCheck() {
+  var d = idDigits($("idNum").value);
+  var el = $("idChk");
+  if (!d) {
+    el.className = "chk mu"; el.textContent = "ยังไม่มีเลขบัตร";
+  } else if (d.length !== 13) {
+    el.className = "chk no"; el.textContent = "⚠️ ต้องมี 13 หลัก (ตอนนี้ " + d.length + " หลัก)";
+  } else if (idValid(d)) {
+    el.className = "chk ok"; el.textContent = "✓ เลขบัตรถูกต้อง (หลักสุดท้ายตรงตามสูตร)";
+  } else {
+    el.className = "chk no"; el.textContent = "✗ เลขไม่ถูกต้อง — อ่านผิดหรือพิมพ์ผิด ตรวจกับบัตรอีกครั้ง";
+  }
+}
+
+// ---------- ป้ายทะเบียน ----------
+// ระยะแก้ไขน้อยสุดระหว่างชื่อจังหวัด กับส่วนใดส่วนหนึ่งของข้อความ
+function fuzzyIn(p, t) {
+  var m = p.length, n = t.length, prev = [], cur = [], i, j;
+  for (j = 0; j <= n; j++) { prev[j] = 0; }
+  for (i = 1; i <= m; i++) {
+    cur = [i];
+    for (j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (p.charAt(i - 1) === t.charAt(j - 1) ? 0 : 1));
+    }
+    prev = cur;
+  }
+  var best = m;
+  for (j = 0; j <= n; j++) { if (prev[j] < best) { best = prev[j]; } }
+  return best;
+}
+
+function findProvinceIn(line) {
+  var t = normThai(line).replace(/[^ก-๎]/g, "");
+  if (t.length < 2) { return null; }
+  var all = PROVINCES.concat(["เบตง"]);
+  var best = null;
+  for (var i = 0; i < all.length; i++) {
+    var p = all[i];
+    var dist = fuzzyIn(p, t);
+    var allow = Math.floor(p.length * 0.3);
+    if (dist <= allow && (!best || dist / p.length < best.score || (dist / p.length === best.score && p.length > best.name.length))) {
+      best = { name: p, score: dist / p.length };
+    }
+  }
+  return best;
+}
+
+// หมวดอักษร + เลข เช่น "กข 1234", "1กข 1234", รถจักรยานยนต์ "1กข" / "123"
+function findPlateIn(text) {
+  var t = normThai(text)
+    .replace(/[ใไ](?=[ก-ฮ])/g, "1")        // "ไกข" -> "1กข"
+    .replace(/[ะ-ฺเ-๎]/g, "");     // ตัดสระ วรรณยุกต์ (ป้ายมีแต่พยัญชนะ)
+  var re = /(\d?)\s*([ก-ฮ]{1,3})\s*[-.]?\s*(\d{1,4})(?!\d)/g;
+  var m, best = null;
+  while ((m = re.exec(t)) !== null) {
+    var score = m[3].length + (m[2].length === 2 ? 1 : 0);
+    if (!best || score > best.score) { best = { text: m[1] + m[2] + " " + m[3], score: score }; }
+  }
+  return best ? best.text : "";
+}
+
+function readPlate(text) {
+  var lines = normThai(text).split("\n");
+  var prov = null, rest = [];
+  for (var i = 0; i < lines.length; i++) {
+    if (!lines[i].trim()) { continue; }
+    var p = findProvinceIn(lines[i]);
+    if (p && (!prov || p.score < prov.score)) { prov = p; }
+    if (p && !/\d/.test(lines[i])) { continue; }   // บรรทัดชื่อจังหวัด (ไม่มีตัวเลข) ไม่เอาไปหาเลขทะเบียน
+    rest.push(lines[i]);
+  }
+  return { plate: findPlateIn(rest.join(" ")), province: prov ? prov.name : "" };
+}
+
+// ทะเบียน + จังหวัด อยู่ในช่องเดียว เช่น "กข 1234 นราธิวาส"
+function plateText() {
+  return $("plNum").value.trim().replace(/\s+/g, " ");
+}
+
+function drawPlateCheck() {
+  var n = normThai(plateText());
+  var el = $("plChk");
+  var m = n.match(/^(\d?[ก-ฮ]{1,3} ?\d{1,4})(?:\s+(.+))?$/);
+  if (!n) {
+    el.className = "chk mu"; el.textContent = "ยังไม่มีทะเบียนรถ";
+  } else if (!m) {
+    el.className = "chk no"; el.textContent = "⚠️ รูปแบบไม่เหมือนป้ายทะเบียน (เช่น กข 1234 นราธิวาส) ตรวจอีกครั้ง";
+  } else if (!m[2]) {
+    el.className = "chk ok"; el.textContent = "✓ รูปแบบถูกต้อง · ยังไม่มีชื่อจังหวัด (พิมพ์ต่อท้ายได้)";
+  } else if (PROVINCES.indexOf(m[2]) >= 0 || m[2] === "เบตง") {
+    el.className = "chk ok"; el.textContent = "✓ รูปแบบทะเบียนถูกต้อง";
+  } else {
+    var p = findProvinceIn(m[2]);
+    el.className = "chk no";
+    el.textContent = "⚠️ ไม่รู้จักจังหวัด \"" + m[2] + "\"" + (p ? " — หมายถึง " + p.name + " หรือเปล่า?" : " ตรวจอีกครั้ง");
+  }
+}
+
+// ---------- ปุ่มคัดลอก ----------
+function copyText(text, btn) {
+  function ok() {
+    var old = btn.getAttribute("data-label") || btn.textContent;
+    btn.setAttribute("data-label", old);
+    btn.textContent = "✓ คัดลอกแล้ว";
+    btn.classList.add("done");
+    setTimeout(function () { btn.textContent = old; btn.classList.remove("done"); }, 1500);
+  }
+  function fallback() {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, text.length);
+    var done = false;
+    try { done = document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+    if (done) { ok(); } else { toast("คัดลอกไม่ได้ กดค้างที่ช่องแล้วเลือกคัดลอก"); }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok, fallback);
+  } else {
+    fallback();
+  }
+}
+
+$("idCopy").onclick = function () {
+  var d = idDigits($("idNum").value);
+  if (!d) { toast("ยังไม่มีเลขบัตร"); return; }
+  copyText(d, this);   // คัดลอกเป็นตัวเลข 13 หลักติดกัน
+};
+$("plCopy").onclick = function () {
+  var t = plateText();
+  if (!t) { toast("ยังไม่มีทะเบียนรถ"); return; }
+  copyText(t, this);
+};
+
+// ---------- ตัวอ่านตัวอักษร (โหลดครั้งแรกที่ใช้) ----------
+function loadOcr(statusEl) {
+  if (ocrWorker) { return Promise.resolve(ocrWorker); }
+  if (ocrLoading) { return ocrLoading; }
+  statusEl.textContent = "กำลังโหลดตัวอ่านตัวอักษร... (ครั้งแรกอาจใช้เวลาสักครู่)";
+  ocrLoading = new Promise(function (resolve, reject) {
+    function start() {
+      Tesseract.createWorker("tha", 1, {
+        logger: function (m) {
+          if (m && m.status && typeof m.progress === "number" && scan.statusEl) {
+            var pct = Math.round(m.progress * 100);
+            scan.statusEl.textContent = (m.status === "recognizing text" ? "กำลังอ่าน... " : "กำลังเตรียมตัวอ่าน... ") + pct + "%";
+          }
+        }
+      }).then(function (w) { ocrWorker = w; resolve(w); }, reject);
+    }
+    if (window.Tesseract) { start(); return; }
+    var sc = document.createElement("script");
+    sc.src = OCR_SCRIPT;
+    sc.onload = start;
+    sc.onerror = function () { reject(new Error("load")); };
+    document.head.appendChild(sc);
+  });
+  ocrLoading.catch(function () { ocrLoading = null; });
+  return ocrLoading;
+}
+
+// ย่อ/ขยาย หมุน ทำเป็นขาวดำ และเพิ่มความคมชัด ก่อนส่งให้ตัวอ่าน
+// mode "adapt" = ทำเป็นขาว-ดำ ตามความสว่างรอบๆ แต่ละจุด (ช่วยกับป้ายที่แสงไม่เท่ากัน)
+function prepCanvas(img, rot, mode) {
+  var w = img.naturalWidth, h = img.naturalHeight;
+  var scale = 1600 / Math.max(w, h);
+  if (scale > 2.5) { scale = 2.5; }
+  var sw = Math.round(w * scale), sh = Math.round(h * scale);
+  var cv = document.createElement("canvas");
+  var side = (rot % 180 !== 0);
+  cv.width = side ? sh : sw;
+  cv.height = side ? sw : sh;
+  var ctx = cv.getContext("2d");
+  ctx.translate(cv.width / 2, cv.height / 2);
+  ctx.rotate(rot * Math.PI / 180);
+  ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh);
+  var data = ctx.getImageData(0, 0, cv.width, cv.height);
+  var px = data.data, hist = [], i, n = px.length / 4;
+  for (i = 0; i < 256; i++) { hist[i] = 0; }
+  for (i = 0; i < px.length; i += 4) {
+    var g = Math.round(px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114);
+    px[i] = g; hist[g]++;
+  }
+  var lo = 0, hi = 255, acc = 0;
+  for (i = 0; i < 256; i++) { acc += hist[i]; if (acc > n * 0.01) { lo = i; break; } }
+  acc = 0;
+  for (i = 255; i >= 0; i--) { acc += hist[i]; if (acc > n * 0.01) { hi = i; break; } }
+  var range = Math.max(1, hi - lo);
+  for (i = 0; i < px.length; i += 4) {
+    var v = Math.max(0, Math.min(255, Math.round((px[i] - lo) * 255 / range)));
+    px[i] = px[i + 1] = px[i + 2] = v;
+  }
+  if (mode === "adapt") {
+    var W = cv.width, H = cv.height, x, y;
+    var r = Math.max(8, Math.round(Math.max(W, H) * 0.04));
+    var ii = new Float64Array((W + 1) * (H + 1));
+    for (y = 0; y < H; y++) {
+      var rs = 0;
+      for (x = 0; x < W; x++) {
+        rs += px[(y * W + x) * 4];
+        ii[(y + 1) * (W + 1) + x + 1] = ii[y * (W + 1) + x + 1] + rs;
+      }
+    }
+    var out = new Uint8Array(W * H);
+    for (y = 0; y < H; y++) {
+      var y0 = Math.max(0, y - r), y1 = Math.min(H, y + r + 1);
+      for (x = 0; x < W; x++) {
+        var x0 = Math.max(0, x - r), x1 = Math.min(W, x + r + 1);
+        var mean = (ii[y1 * (W + 1) + x1] - ii[y0 * (W + 1) + x1] - ii[y1 * (W + 1) + x0] + ii[y0 * (W + 1) + x0]) / ((y1 - y0) * (x1 - x0));
+        out[y * W + x] = px[(y * W + x) * 4] < mean - 10 ? 0 : 255;
+      }
+    }
+    for (i = 0; i < out.length; i++) { px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = out[i]; }
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.putImageData(data, 0, 0);
+  return cv;
+}
+
+// อ่านรูปทีละรอบตาม passes = [[psm, mode], ...] หยุดเมื่อ done(ข้อความ) บอกว่าพอแล้ว
+function ocrPasses(kind, passes, done) {
+  var st = $(kind + "Status");
+  var img = $(kind + "Img");
+  scan.statusEl = st;
+  return loadOcr(st).then(function (w) {
+    var canvases = {};
+    var texts = [];
+    var i = 0;
+    function next() {
+      if (i >= passes.length) { return texts.join("\n"); }
+      var psm = passes[i][0], mode = passes[i][1];
+      i++;
+      if (!canvases[mode]) { canvases[mode] = prepCanvas(img, scan[kind].rot, mode); }
+      var canvas = canvases[mode];
+      return w.setParameters({ tessedit_pageseg_mode: psm })
+        .then(function () { return w.recognize(canvas); })
+        .then(function (r) {
+          texts.push((r && r.data && r.data.text) || "");
+          if (done && done(texts.join("\n"))) { return texts.join("\n"); }
+          return next();
+        });
+    }
+    return next();
+  });
+}
+
+function scanId() {
+  var st = $("idStatus");
+  $("idAlts").innerHTML = "";
+  st.textContent = "กำลังอ่านเลขบัตร...";
+  ocrPasses("id", [["6", "gray"], ["11", "gray"], ["6", "adapt"]], function (t) { return findIdInText(t).valid.length > 0; })
+    .then(function (text) {
+      var res = findIdInText(text);
+      if (res.valid.length) {
+        $("idNum").value = idFormat(res.valid[0]);
+        st.textContent = "อ่านเลขบัตรได้ ✓ ตรวจกับบัตรอีกครั้ง";
+        if (res.valid.length > 1) {
+          var box = $("idAlts");
+          box.innerHTML = '<span class="hint" style="margin:0">พบหลายเลข เลือกที่ตรงกับบัตร:</span>';
+          for (var i = 0; i < res.valid.length; i++) {
+            var b = document.createElement("button");
+            b.className = "btn";
+            b.textContent = idFormat(res.valid[i]);
+            b.onclick = function () { $("idNum").value = this.textContent; drawIdCheck(); update(); };
+            box.appendChild(b);
+          }
+        }
+      } else if (res.fallback) {
+        $("idNum").value = idFormat(res.fallback);
+        st.textContent = "อ่านได้ 13 หลัก แต่ไม่ผ่านสูตรตรวจ — แก้ตัวเลขที่ผิดในช่อง หรือถ่ายใหม่";
+      } else {
+        st.textContent = "ไม่พบเลขบัตร — ถ่ายใหม่ให้ใกล้และตรงขึ้น กด ↻ หมุนรูป หรือพิมพ์เอง";
+      }
+      drawIdCheck();
+      update();
+    })
+    .catch(function () { st.textContent = "⚠️ โหลดตัวอ่านไม่สำเร็จ — เช็กอินเทอร์เน็ตแล้วลองใหม่ (หรือพิมพ์เลขเอง)"; });
+}
+
+function scanPlate() {
+  var st = $("plStatus");
+  st.textContent = "กำลังอ่านป้ายทะเบียน...";
+  ocrPasses("pl", [["11", "gray"], ["6", "gray"], ["6", "adapt"], ["11", "adapt"]], function (t) {
+    var r = readPlate(t);
+    return !!(r.plate && r.province);   // ได้ทั้งเลขและจังหวัดแล้ว ไม่ต้องอ่านรอบต่อไป
+  })
+    .then(function (text) {
+      var res = readPlate(text);
+      if (res.plate || res.province) {
+        $("plNum").value = (res.plate + " " + res.province).trim();   // เช่น "กข 1234 นราธิวาส"
+      }
+      if (res.plate && res.province) {
+        st.textContent = "อ่านป้ายได้ ✓ ตรวจกับป้ายอีกครั้ง";
+      } else if (res.plate) {
+        st.textContent = "อ่านเลขทะเบียนได้ แต่ไม่เจอชื่อจังหวัด — พิมพ์ชื่อจังหวัดต่อท้ายในช่อง";
+      } else if (res.province) {
+        st.textContent = "เจอชื่อจังหวัด แต่อ่านเลขทะเบียนไม่ได้ — พิมพ์เอง หรือถ่ายใหม่";
+      } else {
+        st.textContent = "อ่านป้ายไม่ได้ — ถ่ายใหม่ให้ตรงและเต็มกรอบ กด ↻ หมุนรูป หรือพิมพ์เอง";
+      }
+      drawPlateCheck();
+      update();
+    })
+    .catch(function () { st.textContent = "⚠️ โหลดตัวอ่านไม่สำเร็จ — เช็กอินเทอร์เน็ตแล้วลองใหม่ (หรือพิมพ์เอง)"; });
+}
+
+// เลือกรูป -> แสดงตัวอย่าง -> อ่านทันที
+function onPhoto(kind, file, run) {
+  if (!file) { return; }
+  if (scan[kind].src) { URL.revokeObjectURL(scan[kind].src); }
+  scan[kind].src = URL.createObjectURL(file);
+  scan[kind].rot = 0;
+  var img = $(kind + "Img");
+  img.style.transform = "";
+  img.onload = function () { run(); };
+  img.src = scan[kind].src;
+  img.style.display = "block";
+  $(kind + "Tools").style.display = "flex";
+}
+
+function rotatePhoto(kind, run) {
+  if (!scan[kind].src) { return; }
+  scan[kind].rot = (scan[kind].rot + 90) % 360;
+  $(kind + "Img").style.transform = "rotate(" + scan[kind].rot + "deg)";
+  run();
+}
+
+$("idFile").addEventListener("change", function () { onPhoto("id", this.files[0], scanId); this.value = ""; });
+$("plFile").addEventListener("change", function () { onPhoto("pl", this.files[0], scanPlate); this.value = ""; });
+$("idRot").onclick = function () { rotatePhoto("id", scanId); };
+$("plRot").onclick = function () { rotatePhoto("pl", scanPlate); };
+$("idRescan").onclick = scanId;
+$("plRescan").onclick = scanPlate;
+$("idNum").addEventListener("input", function () { $("idAlts").innerHTML = ""; drawIdCheck(); update(); });
+$("plNum").addEventListener("input", function () { drawPlateCheck(); update(); });
+
+function clearScan() {
+  ["id", "pl"].forEach(function (k) {
+    if (scan[k].src) { URL.revokeObjectURL(scan[k].src); }
+    scan[k] = { rot: 0, src: null };
+    $(k + "Img").removeAttribute("src");
+    $(k + "Img").style.display = "none";
+    $(k + "Tools").style.display = "none";
+    $(k + "Status").textContent = "";
+  });
+  $("idNum").value = "";
+  $("idAlts").innerHTML = "";
+  $("plNum").value = "";
+  drawIdCheck();
+  drawPlateCheck();
+  update();
+}
+
+function buildMessage6() {
+  var lines = ["สภ.มูโนะ", "ขอตรวจสอบ"];
+  var d = idDigits($("idNum").value);
+  if (d) { lines.push(P6_INDENT + "เลขบัตรประชาชน " + idFormat(d)); }
+  var pt = plateText();
+  if (pt) { lines.push(P6_INDENT + "ทะเบียนรถ " + pt); }
+  if (lines.length === 2) { lines.push(P6_INDENT + "…"); }
+  return lines.join("\n");
+}
+
+function checkForm6() {
+  var d = idDigits($("idNum").value);
+  var pt = plateText();
+  if (!d && !pt) { toast("สแกนหรือพิมพ์ เลขบัตร หรือ ทะเบียนรถ อย่างน้อย 1 อย่าง"); return false; }
+  if (d && !idValid(d)) {
+    return confirm("เลขบัตร " + idFormat(d) + " ไม่ถูกต้องตามสูตรตรวจ (อาจอ่านผิด)\n\nยังต้องการส่งต่อไหม?");
+  }
+  return true;
+}
+
+drawIdCheck();
+drawPlateCheck();
+
 // ---------- ตัวเลือกหน้า (ใช้ร่วมกันทุกหน้า) ----------
 
 // ค่าที่เลือกในฟอร์มของหน้าที่เปิดอยู่ (ใช้เก็บในประวัติ เพื่อ "ใช้ซ้ำ")
@@ -2253,6 +2766,7 @@ function refreshTimeBeforeSend() {
   // ยกเลิกแล้ว: เวลาในรายงานใช้ค่าที่กด "ใส่เวลานี้ลงรายงาน" ไว้
 }
 function buildMessage() {
+  if (currentPage === 6) { return buildMessage6(); }
   if (currentPage === 5) { return buildMessage5(); }
   if (currentPage === 4) { return buildMessage4(); }
   if (currentPage === 3) { return buildMessage3(); }
@@ -2264,6 +2778,7 @@ function checkForm() {
     toast("กรุณากด ✓ ใส่เวลานี้ลงรายงาน ก่อนส่ง");
     return false;
   }
+  if (currentPage === 6) { return checkForm6(); }
   if (currentPage === 5) { return checkForm5(); }
   if (currentPage === 4) { return checkForm4(); }
   if (currentPage === 3) { return checkForm3(); }
@@ -2289,7 +2804,14 @@ function showPage(n) {
   $("page3").style.display = (n === 3) ? "block" : "none";
   $("page4").style.display = (n === 4) ? "block" : "none";
   $("page5").style.display = (n === 5) ? "block" : "none";
-  $("finishRow").style.display = (n === 5) ? "none" : "flex";   // หน้าอินทรี03 ซ่อนตัวเลือกจบการรายงาน
+  $("page6").style.display = (n === 6) ? "block" : "none";
+  $("finishRow").style.display = (n >= 5) ? "none" : "flex";   // หน้าอินทรี03 / สแกน ซ่อนตัวเลือกจบการรายงาน
+  $("fold_preset").style.display = (n === 6) ? "none" : "";    // หน้าสแกนไม่มีชุดสำเร็จรูป
+  // หน้าสแกน: ไม่มีข้อความที่จะส่ง ปุ่มส่ง ปุ่มคัดลอก และประวัติการส่ง
+  ["oLabel", "o", "pick", "cp", "fold_hist"].forEach(function (id) {
+    $(id).style.display = (n === 6) ? "none" : "";
+  });
+  $("tab6").classList.toggle("on", n === 6);
   $("tab1").classList.toggle("on", n === 1);
   $("tab2").classList.toggle("on", n === 2);
   $("tab3").classList.toggle("on", n === 3);
@@ -2305,6 +2827,7 @@ $("tab2").onclick = function () { showPage(2); };
 $("tab3").onclick = function () { showPage(3); };
 $("tab4").onclick = function () { showPage(4); };
 $("tab5").onclick = function () { showPage(5); };
+$("tab6").onclick = function () { showPage(6); };
 
 // ================== จำค่า / ชุดเวร / ล้างฟอร์ม ==================
 
@@ -2429,7 +2952,7 @@ function presetSummary(st) {
   return parts.join(" · ") || "ว่าง";
 }
 
-var PAGE_NAMES = { 1: "รายงานการปฏิบัติ", 2: "ตรวจความพร้อม", 3: "ตรวจปราการและอินทรี", 4: "ตรวจห้องขัง", 5: "ส่งรายชื่ออินทรี03" };
+var PAGE_NAMES = { 1: "รายงานการปฏิบัติ", 2: "ตรวจความพร้อม", 3: "ตรวจปราการและอินทรี", 4: "ตรวจห้องขัง", 5: "ส่งรายชื่ออินทรี03", 6: "สแกนบัตร / ทะเบียนรถ" };
 
 // แสดงเฉพาะชุดของหน้าที่เปิดอยู่
 function drawPresets() {
@@ -2548,6 +3071,8 @@ $("clearAll").onclick = function () {
     applyState3({ d: [], opt: 0, show: { normal3: true, end3: true } });
   } else if (currentPage === 4) {
     applyState4({ e: [], has: 0, count: 1, show: { normal4: true, end4: true } });
+  } else if (currentPage === 6) {
+    clearScan();
   } else {
     applyState5({});
   }
@@ -2637,7 +3162,7 @@ function pageFromUrl() {
       p = new URLSearchParams(q.get("liff.state").replace(/^[^?]*\?/, "")).get("page");
     }
     p = Number(p);
-    if (p >= 1 && p <= 5) { return p; }
+    if (p >= 1 && p <= 6) { return p; }
   } catch (e) {}
   return 0;
 }
@@ -2815,7 +3340,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "7 ต.ค. 69 · รุ่นที่ 33";
+var APP_VERSION = "7 ต.ค. 69 · รุ่นที่ 36";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
@@ -2846,7 +3371,7 @@ restoreLast5();
 restoring = false;
 var lastPage = 1;
 try { lastPage = Number(localStorage.getItem("lastPage")) || 1; } catch (e) {}
-if (lastPage < 1 || lastPage > 5) { lastPage = 1; }
+if (lastPage < 1 || lastPage > 6) { lastPage = 1; }
 // ลำดับ: ลิงก์ ?page= > หน้าที่ใช้ล่าสุด
 var startPage = pageFromUrl() || lastPage;
 showPage(startPage);
