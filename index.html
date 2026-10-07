@@ -404,6 +404,8 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 
   <div class="l">ชป.จู่โจม <i>เลือกได้ 1 (กดซ้ำเพื่อยกเลิก)</i></div>
   <div class="g" id="p2jj"></div>
+
+  <div class="fixrow" id="row_traffic" style="margin-top:14px"><span>ข่ายจราจร</span><button class="btn small" data-fix="traffic">▫️</button></div>
 </div>
 
 <div class="c">
@@ -651,7 +653,7 @@ var chosen = { a: [], b: [], c: [], d: [], e: [] };   // e = หน้า 4 ห�
 var patrol = 0;           // ชป. ที่เลือก (0 = ยังไม่เลือก)
 var v4Chosen = [];        // ลำดับ (index) ของ ว.4 ที่ติ๊ก
 var show = { cmd: true, order: true, normal: true, end: true,
-             check: true, note: true, normal2: true, end2: true,
+             check: true, note: true, normal2: true, end2: true, traffic: true,
              normal3: true, end3: true, normal4: true, end4: true };   // หน้า 3 ใช้ normal3, end3   // หน้า 2 ใช้ check, note, normal2, end2  // ข้อความคงที่ แสดง/ซ่อน
 var openGroup = { a: -1, b: -1, c: -1, d: -1, e: -1 };   // หัวข้อใหญ่ที่เปิดอยู่ของแต่ละชุด
 var hist = [];
@@ -1270,13 +1272,28 @@ $("saveNew").onclick = function () {
 // อยากให้ลึกขึ้น/ตื้นลง เพิ่มหรือลดช่องว่างในเครื่องหมายคำพูดได้
 var NAME_INDENT = "     ";
 
+// ย่อหน้าบรรทัดตำแหน่ง (บรรทัดใต้ ยศ ชื่อ สกุล) — ลึกกว่าบรรทัดชื่ออีกเท่านี้
+// อยากให้ลึกขึ้น/ตื้นลง เพิ่มหรือลดช่องว่างในเครื่องหมายคำพูดได้
+var POS_INDENT = "     ";
+
+// แยกเป็น 2 บรรทัด: "ยศชื่อ สกุล" / ตำแหน่ง (นามเรียกขาน) ย่อหน้าลึกกว่า
+// ถ้าไม่มีตำแหน่ง (มีแค่ ยศชื่อ สกุล) จะเป็นบรรทัดเดียวเหมือนเดิม
+function nameLines(indent, person, sign) {
+  var tail = sign ? " (" + sign + ")" : "";
+  var words = String(person.name).trim().split(/\s+/);
+  // กรณีพิมพ์ยศแยกกับชื่อ เช่น "พ.ต.อ. สมชาย ใจดี ..." ให้นับยศรวมกับชื่อ
+  if (words.length > 1 && /\.$/.test(words[0])) { words.splice(0, 2, words[0] + " " + words[1]); }
+  if (words.length <= 2) { return [indent + words.join(" ") + tail]; }
+  return [indent + words[0] + " " + words[1],
+          indent + POS_INDENT + words.slice(2).join(" ") + tail];
+}
+
 // ใส่รายชื่อลงในข้อความ (ไม่มีเลขลำดับ)
 function addNameLines(lines, list) {
   if (list.length === 0) { lines.push("…"); return; }
   for (var i = 0; i < list.length; i++) {
     var person = findPerson(list[i].id);
-    var line = NAME_INDENT + person.name + (list[i].sign ? " (" + list[i].sign + ")" : "");
-    lines.push(line);
+    Array.prototype.push.apply(lines, nameLines(NAME_INDENT, person, list[i].sign));
   }
 }
 
@@ -1661,11 +1678,12 @@ function buildMessage2() {
   // รายชื่อ (อยู่ก่อนบรรทัด ตรวจความพร้อม)
   for (var i = 0; i < chosen.c.length; i++) {
     var person = findPerson(chosen.c[i].id);
-    lines.push(P2_NAME_INDENT + person.name + (chosen.c[i].sign ? " (" + chosen.c[i].sign + ")" : ""));
+    Array.prototype.push.apply(lines, nameLines(P2_NAME_INDENT, person, chosen.c[i].sign));
   }
   if (show.check) { lines.push("ตรวจความพร้อม"); }
   if (p2sp) { lines.push(P2_INDENT + "ชป.สายตรวจ (ชป." + p2sp + ")"); }
   if (p2jj) { lines.push(P2_INDENT + "ชป.จู่โจม (ชป." + p2jj + ")"); }
+  if (show.traffic) { lines.push(P2_INDENT + "ข่ายจราจร"); }   // กด ▫️ เพื่อซ่อน/แสดง
   if (show.note && $("note2").value.trim()) { lines.push(P2_INDENT + $("note2").value.trim()); }
   if (show.normal2) { lines.push("เหตุการณ์ทั่วไปปกติ"); }
   if (show.end2) { lines.push("      จึงเรียนมาเพื่อโปรดทราบ"); }
@@ -1680,7 +1698,7 @@ function checkForm2() {
 // จำค่าหน้า 2
 function getState2() {
   return JSON.parse(JSON.stringify({ c: chosen.c, sp: p2sp, jj: p2jj, note: $("note2").value,
-             show: { check: show.check, note: show.note, normal2: show.normal2, end2: show.end2 } }));
+             show: { check: show.check, note: show.note, normal2: show.normal2, end2: show.end2, traffic: show.traffic } }));
 }
 function saveLast2() {
   if (restoring !== false) { return; }
@@ -1707,7 +1725,7 @@ function applyState2(st) {
     p2jj = st.jj || 0;
     if (typeof st.note === "string") { $("note2").value = st.note; }
     if (st.show) {
-      var keys = ["check", "note", "normal2", "end2"];
+      var keys = ["check", "note", "normal2", "end2", "traffic"];
       for (var k = 0; k < keys.length; k++) {
         show[keys[k]] = st.show[keys[k]] !== false;
         setShowUI(keys[k]);
@@ -1781,7 +1799,7 @@ function buildMessage3() {
   lines.push("เวลา " + (getCommittedTime(3) || "-") + " น.");
   for (var i = 0; i < chosen.d.length; i++) {
     var person = findPerson(chosen.d[i].id);
-    lines.push(P3_INDENT + person.name + (chosen.d[i].sign ? " (" + chosen.d[i].sign + ")" : ""));
+    Array.prototype.push.apply(lines, nameLines(P3_INDENT, person, chosen.d[i].sign));
   }
   lines.push(P3_INDENT + "ตรวจความพร้อม " + P3_OPTIONS[p3opt] + " " + P3_TAIL);   // ย่อหน้า 7 ช่อง
   if (show.normal3) { lines.push("เหตุการณ์ทั่วไปปกติ"); }
@@ -1910,7 +1928,7 @@ function buildMessage4() {
   lines.push("เวลา " + (getCommittedTime(4) || "-") + " น.");
   for (var i = 0; i < chosen.e.length; i++) {
     var person = findPerson(chosen.e[i].id);
-    lines.push(P4_INDENT + person.name + (chosen.e[i].sign ? " (" + chosen.e[i].sign + ")" : ""));
+    Array.prototype.push.apply(lines, nameLines(P4_INDENT, person, chosen.e[i].sign));
   }
   var who = (p4has === 1) ? "มีผู้ต้องหาในการควบคุม " + p4count + " ราย" : "ไม่มีผู้ต้องหาในการควบคุม";
   lines.push(P4_INDENT + P4_FIXED + " " + who);
@@ -2508,7 +2526,7 @@ $("clearAll").onclick = function () {
   if (currentPage === 1) {
     applyFormState({ a: [], b: [], patrol: 0, v4: [], show: { cmd: true, order: true, normal: true, end: true } });
   } else if (currentPage === 2) {
-    applyState2({ c: [], sp: 0, jj: 0, note: NOTE_DEFAULT, show: { check: true, note: true, normal2: true, end2: true } });
+    applyState2({ c: [], sp: 0, jj: 0, note: NOTE_DEFAULT, show: { check: true, note: true, normal2: true, end2: true, traffic: true } });
   } else if (currentPage === 3) {
     applyState3({ d: [], opt: 0, show: { normal3: true, end3: true } });
   } else if (currentPage === 4) {
@@ -2780,7 +2798,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "7 ต.ค. 69 · รุ่นที่ 30";
+var APP_VERSION = "7 ต.ค. 69 · รุ่นที่ 32";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
