@@ -175,6 +175,14 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 .alts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .alts .btn{padding:6px 10px;font-size:14px}
 .bigIn{font-size:20px!important;font-weight:700;letter-spacing:1px;text-align:center}
+.cropStage{position:relative;width:fit-content;max-width:100%;margin:10px auto 8px;overflow:hidden;border-radius:10px;border:1px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.cropImg{display:block;max-width:100%;max-height:62vh;pointer-events:none;-webkit-user-drag:none}
+.cropBox{position:absolute;display:none;border:2px solid var(--gold);box-shadow:0 0 0 9999px rgba(0,0,0,.55);box-sizing:border-box;pointer-events:none}
+.cropBox i{position:absolute;width:min(22px,35%);height:min(22px,35%);border:0 solid var(--gold)}
+.cropBox i[data-h="tl"]{left:-2px;top:-2px;border-width:5px 0 0 5px}
+.cropBox i[data-h="tr"]{right:-2px;top:-2px;border-width:5px 5px 0 0}
+.cropBox i[data-h="bl"]{left:-2px;bottom:-2px;border-width:0 0 5px 5px}
+.cropBox i[data-h="br"]{right:-2px;bottom:-2px;border-width:0 5px 5px 0}
 .copyRow{display:flex;gap:8px;align-items:stretch}
 .copyRow input{flex:1;min-width:0}
 .copyBtn{flex:none;padding:8px 12px;font-size:15px;white-space:nowrap}
@@ -243,9 +251,10 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 
     <details><summary>สแกนบัตร / ทะเบียนรถ</summary>
       <ul>
-        <li>กด <b>📷 ถ่ายรูป / เลือกรูป</b> แอปจะอ่านเลขบัตร หรือหมวด-เลขทะเบียนและจังหวัดให้เอง</li>
+        <li>กด <b>📷 ถ่ายรูป / เลือกรูป</b> แล้ว<b>ลากนิ้วบนรูปวาดกรอบ</b>ให้ครอบเฉพาะเลข 13 หลัก หรือครอบป้ายทะเบียนทั้งป้าย</li>
+        <li>กด <b>🔍 อ่านในกรอบ</b> — ครอบพอดี = อ่านเร็วและแม่นกว่าอ่านทั้งรูปมาก</li>
         <li>เลขบัตรขึ้น <b>✓ ถูกต้อง</b> = ครบ 13 หลักและหลักสุดท้ายตรงตามสูตร · ขึ้น ✗ ให้ตรวจกับบัตรแล้วแก้ในช่อง</li>
-        <li>อ่านไม่ได้: ถ่ายใหม่ให้ใกล้และตรงขึ้น หรือกด ↻ หมุนรูป หรือพิมพ์เอง</li>
+        <li>อ่านไม่ได้: ลากกรอบใหม่ให้พอดีขึ้น กด ↻ หมุนรูป หรือพิมพ์เอง</li>
         <li>ข้อมูลหน้านี้ไม่ถูกเก็บไว้ในเครื่อง · ถ่ายรูปใหม่ = อ่านใหม่แทนของเดิม</li>
       </ul>
     </details>
@@ -593,14 +602,23 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <!-- ================= หน้า 6: สแกนบัตร / ทะเบียนรถ ================= -->
 <div id="page6" style="display:none">
 
+<p class="hint" id="ocrState" style="margin:0 4px 10px"></p>
+
 <div class="c">
   <div class="l" style="margin-top:0;font-size:18px">🪪 เลขบัตรประชาชน</div>
-  <p class="hint" style="margin-top:0">ถ่ายด้านหน้าบัตรให้ชัด ตรง เต็มกรอบ ไม่มีแสงสะท้อน · อ่านในเครื่อง ไม่ส่งรูปออกไปไหน</p>
+  <p class="hint" style="margin-top:0">ถ่ายด้านหน้าบัตรให้ชัด ไม่มีแสงสะท้อน · อ่านในเครื่อง ไม่ส่งรูปออกไปไหน</p>
   <label class="btn on scanBtn">📷 ถ่ายรูป / เลือกรูปบัตร<input type="file" accept="image/*" id="idFile" hidden></label>
-  <img id="idImg" class="scanImg" alt="รูปบัตร" style="display:none">
-  <div class="scanTools" id="idTools" style="display:none">
-    <button class="btn" id="idRot">↻ หมุนรูปแล้วอ่านใหม่</button>
-    <button class="btn" id="idRescan">อ่านอีกครั้ง</button>
+  <div id="idTools" style="display:none">
+    <div class="cropStage" id="idStage">
+      <img id="idImg" class="cropImg" alt="รูปบัตร">
+      <div class="cropBox" id="idBox"><i data-h="tl"></i><i data-h="tr"></i><i data-h="bl"></i><i data-h="br"></i></div>
+    </div>
+    <p class="hint">ลากนิ้วบนรูปเพื่อวาดกรอบ ให้ครอบ <b>เลข 13 หลัก</b> พอดีๆ (ครอบทั้งบัตรก็ได้ แต่ช้ากว่า) · ลากในกรอบเพื่อย้าย · ลากมุมเพื่อย่อ/ขยาย</p>
+    <button class="btn on scanBtn" id="idGo">🔍 อ่านเลขในกรอบ</button>
+    <div class="scanTools">
+      <button class="btn" id="idRot">↻ หมุนรูป</button>
+      <button class="btn" id="idAll">อ่านทั้งรูป (ช้ากว่า)</button>
+    </div>
   </div>
   <p class="hint" id="idStatus"></p>
   <div class="lb2">เลขบัตร 13 หลัก <i>แก้หรือพิมพ์เองได้</i></div>
@@ -614,12 +632,19 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 
 <div class="c">
   <div class="l" style="margin-top:0;font-size:18px">🚗 ป้ายทะเบียนรถ</div>
-  <p class="hint" style="margin-top:0">ถ่ายป้ายให้ตรง เต็มกรอบ เห็นชื่อจังหวัด</p>
+  <p class="hint" style="margin-top:0">ถ่ายป้ายให้ตรง ชัด เห็นชื่อจังหวัด</p>
   <label class="btn on scanBtn">📷 ถ่ายรูป / เลือกรูปป้าย<input type="file" accept="image/*" id="plFile" hidden></label>
-  <img id="plImg" class="scanImg" alt="รูปป้ายทะเบียน" style="display:none">
-  <div class="scanTools" id="plTools" style="display:none">
-    <button class="btn" id="plRot">↻ หมุนรูปแล้วอ่านใหม่</button>
-    <button class="btn" id="plRescan">อ่านอีกครั้ง</button>
+  <div id="plTools" style="display:none">
+    <div class="cropStage" id="plStage">
+      <img id="plImg" class="cropImg" alt="รูปป้ายทะเบียน">
+      <div class="cropBox" id="plBox"><i data-h="tl"></i><i data-h="tr"></i><i data-h="bl"></i><i data-h="br"></i></div>
+    </div>
+    <p class="hint">ลากนิ้วบนรูปเพื่อวาดกรอบ ให้ครอบ <b>ป้ายทะเบียนทั้งป้าย</b> (รวมชื่อจังหวัด) · ลากในกรอบเพื่อย้าย · ลากมุมเพื่อย่อ/ขยาย</p>
+    <button class="btn on scanBtn" id="plGo">🔍 อ่านป้ายในกรอบ</button>
+    <div class="scanTools">
+      <button class="btn" id="plRot">↻ หมุนรูป</button>
+      <button class="btn" id="plAll">อ่านทั้งรูป (ช้ากว่า)</button>
+    </div>
   </div>
   <p class="hint" id="plStatus"></p>
   <div class="lb2">ทะเบียนรถ และจังหวัด <i>แก้หรือพิมพ์เองได้</i></div>
@@ -2270,7 +2295,7 @@ var PROVINCES = ["กรุงเทพมหานคร","กระบี่",
   "สมุทรสงคราม","สมุทรสาคร","สระแก้ว","สระบุรี","สิงห์บุรี","สุโขทัย","สุพรรณบุรี","สุราษฎร์ธานี","สุรินทร์",
   "หนองคาย","หนองบัวลำภู","อ่างทอง","อำนาจเจริญ","อุดรธานี","อุตรดิตถ์","อุทัยธานี","อุบลราชธานี"];
 
-var scan = { id: { rot: 0, src: null }, pl: { rot: 0, src: null } };
+var scan = { id: { base: null, crop: null, busy: false }, pl: { base: null, crop: null, busy: false }, cur: "" };
 var ocrWorker = null;
 var ocrLoading = null;
 
@@ -2455,21 +2480,27 @@ $("plCopy").onclick = function () {
   copyText(t, this);
 };
 
-// ---------- ตัวอ่านตัวอักษร (โหลดครั้งแรกที่ใช้) ----------
-function loadOcr(statusEl) {
+// ---------- ตัวอ่านตัวอักษร (โหลดไว้ตั้งแต่เปิดแท็บ) ----------
+function ocrStateText(t) { $("ocrState").textContent = t; }
+
+function loadOcr() {
   if (ocrWorker) { return Promise.resolve(ocrWorker); }
   if (ocrLoading) { return ocrLoading; }
-  statusEl.textContent = "กำลังโหลดตัวอ่านตัวอักษร... (ครั้งแรกอาจใช้เวลาสักครู่)";
+  ocrStateText("⏳ กำลังเตรียมตัวอ่านตัวอักษร... (ครั้งแรกโหลดประมาณ 5–10 MB)");
   ocrLoading = new Promise(function (resolve, reject) {
     function start() {
       Tesseract.createWorker("tha", 1, {
         logger: function (m) {
-          if (m && m.status && typeof m.progress === "number" && scan.statusEl) {
-            var pct = Math.round(m.progress * 100);
-            scan.statusEl.textContent = (m.status === "recognizing text" ? "กำลังอ่าน... " : "กำลังเตรียมตัวอ่าน... ") + pct + "%";
+          if (!m || typeof m.progress !== "number") { return; }
+          var pct = Math.round(m.progress * 100);
+          if (m.status === "recognizing text") {
+            var k = scan.cur;
+            if (k && scan[k].busy) { $(k + "Status").textContent = scan[k].busyText + " " + pct + "%"; }
+          } else if (!ocrWorker) {
+            ocrStateText("⏳ กำลังเตรียมตัวอ่านตัวอักษร... " + pct + "%");
           }
         }
-      }).then(function (w) { ocrWorker = w; resolve(w); }, reject);
+      }).then(function (w) { ocrWorker = w; ocrStateText("✓ ตัวอ่านพร้อมแล้ว"); resolve(w); }, reject);
     }
     if (window.Tesseract) { start(); return; }
     var sc = document.createElement("script");
@@ -2478,25 +2509,152 @@ function loadOcr(statusEl) {
     sc.onerror = function () { reject(new Error("load")); };
     document.head.appendChild(sc);
   });
-  ocrLoading.catch(function () { ocrLoading = null; });
+  ocrLoading.catch(function () {
+    ocrLoading = null;
+    ocrStateText("⚠️ โหลดตัวอ่านไม่สำเร็จ — เช็กอินเทอร์เน็ต (พิมพ์เลขเองได้)");
+  });
   return ocrLoading;
 }
 
-// ย่อ/ขยาย หมุน ทำเป็นขาวดำ และเพิ่มความคมชัด ก่อนส่งให้ตัวอ่าน
-// mode "adapt" = ทำเป็นขาว-ดำ ตามความสว่างรอบๆ แต่ละจุด (ช่วยกับป้ายที่แสงไม่เท่ากัน)
-function prepCanvas(img, rot, mode) {
-  var w = img.naturalWidth, h = img.naturalHeight;
-  var scale = 1600 / Math.max(w, h);
-  if (scale > 2.5) { scale = 2.5; }
-  var sw = Math.round(w * scale), sh = Math.round(h * scale);
-  var cv = document.createElement("canvas");
-  var side = (rot % 180 !== 0);
-  cv.width = side ? sh : sw;
-  cv.height = side ? sw : sh;
+// ---------- รูป + กรอบครอบ ----------
+var BASE_MAX = 3200;   // ความละเอียดสูงสุดที่เก็บไว้ใช้ครอบ (พิกเซล)
+var VIEW_MAX = 1200;   // ความละเอียดรูปที่แสดงบนจอ
+
+function newCanvas(w, h) {
+  var c = document.createElement("canvas");
+  c.width = Math.max(1, w); c.height = Math.max(1, h);
+  return c;
+}
+
+function setBase(kind, cv) {
+  scan[kind].base = cv;
+  var s = Math.min(1, VIEW_MAX / Math.max(cv.width, cv.height));
+  var v = newCanvas(Math.round(cv.width * s), Math.round(cv.height * s));
+  v.getContext("2d").drawImage(cv, 0, 0, v.width, v.height);
+  $(kind + "Img").src = v.toDataURL("image/jpeg", 0.85);
+  scan[kind].crop = null;   // ยังไม่มีกรอบ รอให้ลากนิ้ววาด
+  drawCropBox(kind);
+  $(kind + "Tools").style.display = "block";
+}
+
+// เลือกรูป -> แสดงพร้อมกรอบ (ยังไม่อ่าน รอให้ลากกรอบก่อน)
+function onPhoto(kind, file) {
+  if (!file) { return; }
+  var st = $(kind + "Status");
+  st.textContent = "กำลังเปิดรูป...";
+  var url = URL.createObjectURL(file);
+  var im = new Image();
+  im.onload = function () {
+    var s = Math.min(1, BASE_MAX / Math.max(im.naturalWidth, im.naturalHeight));
+    var cv = newCanvas(Math.round(im.naturalWidth * s), Math.round(im.naturalHeight * s));
+    cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+    URL.revokeObjectURL(url);
+    setBase(kind, cv);
+    st.textContent = "👆 ลากนิ้วบนรูปวาดกรอบให้ครอบ" + (kind === "id" ? "เลข 13 หลัก" : "ป้ายทะเบียน") + " แล้วกด 🔍";
+    loadOcr();   // เตรียมตัวอ่านระหว่างลากกรอบ
+  };
+  im.onerror = function () { URL.revokeObjectURL(url); st.textContent = "⚠️ เปิดรูปไม่ได้ ลองเลือกรูปใหม่"; };
+  im.src = url;
+}
+
+// หมุนตามเข็มนาฬิกา 90°
+function rotatePhoto(kind) {
+  var b = scan[kind].base;
+  if (!b || scan[kind].busy) { return; }
+  var cv = newCanvas(b.height, b.width);
   var ctx = cv.getContext("2d");
-  ctx.translate(cv.width / 2, cv.height / 2);
-  ctx.rotate(rot * Math.PI / 180);
-  ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh);
+  ctx.translate(cv.width, 0);
+  ctx.rotate(Math.PI / 2);
+  ctx.drawImage(b, 0, 0);
+  setBase(kind, cv);
+}
+
+function drawCropBox(kind) {
+  var r = scan[kind].crop, box = $(kind + "Box");
+  box.style.display = r ? "block" : "none";
+  if (!r) { return; }
+  box.style.left = (r.x * 100) + "%";
+  box.style.top = (r.y * 100) + "%";
+  box.style.width = (r.w * 100) + "%";
+  box.style.height = (r.h * 100) + "%";
+}
+
+// ลากบนรูป = วาดกรอบใหม่ · ลากในกรอบ = ย้าย · ลากมุม = ย่อ/ขยาย
+function setupCrop(kind) {
+  var stage = $(kind + "Stage");
+  var MIN = 0.03;
+  var drag = null;
+  function pos(e) {
+    var rc = $(kind + "Img").getBoundingClientRect();
+    return { x: (e.clientX - rc.left) / rc.width, y: (e.clientY - rc.top) / rc.height };
+  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  stage.addEventListener("pointerdown", function (e) {
+    if (!scan[kind].base) { return; }
+    e.preventDefault();
+    var p = pos(e), r = scan[kind].crop;
+    var mode = "new";
+    if (r) {
+      // ดูจากตำแหน่งนิ้ว: ใกล้มุม = ย่อ/ขยาย · ในกรอบ = ย้าย · นอกกรอบ = วาดใหม่
+      var bx = $(kind + "Box").getBoundingClientRect();
+      var px = e.clientX - bx.left, py = e.clientY - bx.top;
+      var zx = Math.min(24, bx.width * 0.3), zy = Math.min(24, bx.height * 0.3), tol = 14;
+      var inX = px >= -tol && px <= bx.width + tol, inY = py >= -tol && py <= bx.height + tol;
+      if (inX && inY) {
+        var nearL = px < zx, nearR = px > bx.width - zx, nearT = py < zy, nearB = py > bx.height - zy;
+        if ((nearL || nearR) && (nearT || nearB)) { mode = (nearT ? "t" : "b") + (nearL ? "l" : "r"); }
+        else if (px >= 0 && px <= bx.width && py >= 0 && py <= bx.height) { mode = "move"; }
+      }
+    }
+    drag = { mode: mode, p0: p, prev: r, r0: mode === "new" ? { x: clamp(p.x, 0, 1), y: clamp(p.y, 0, 1), w: 0, h: 0 } : r };
+    try { stage.setPointerCapture(e.pointerId); } catch (er) {}
+  });
+  stage.addEventListener("pointermove", function (e) {
+    if (!drag) { return; }
+    e.preventDefault();
+    var p = pos(e), dx = p.x - drag.p0.x, dy = p.y - drag.p0.y, r0 = drag.r0, r;
+    if (drag.mode === "move") {
+      r = { x: clamp(r0.x + dx, 0, 1 - r0.w), y: clamp(r0.y + dy, 0, 1 - r0.h), w: r0.w, h: r0.h };
+    } else if (drag.mode === "new") {
+      var x1 = clamp(p.x, 0, 1), y1 = clamp(p.y, 0, 1);
+      r = { x: Math.min(r0.x, x1), y: Math.min(r0.y, y1), w: Math.abs(x1 - r0.x), h: Math.abs(y1 - r0.y) };
+    } else {
+      var L = r0.x, T = r0.y, R = r0.x + r0.w, B = r0.y + r0.h;
+      if (drag.mode.charAt(1) === "l") { L = clamp(L + dx, 0, R - MIN); } else { R = clamp(R + dx, L + MIN, 1); }
+      if (drag.mode.charAt(0) === "t") { T = clamp(T + dy, 0, B - MIN); } else { B = clamp(B + dy, T + MIN, 1); }
+      r = { x: L, y: T, w: R - L, h: B - T };
+    }
+    scan[kind].crop = r;
+    drawCropBox(kind);
+  });
+  function end() {
+    if (!drag) { return; }
+    var r = scan[kind].crop;
+    if (drag.mode === "new" && (r.w < MIN || r.h < MIN)) { scan[kind].crop = drag.prev; }   // แตะเฉยๆ = ใช้กรอบเดิม (หรือยังไม่มีกรอบ)
+    drag = null;
+    drawCropBox(kind);
+  }
+  stage.addEventListener("pointerup", end);
+  stage.addEventListener("pointercancel", end);
+}
+
+// ตัดเฉพาะในกรอบ (หรือทั้งรูป) ขยายให้ตัวอักษรใหญ่พอ เติมขอบขาว ทำเป็นขาวดำและเพิ่มความคมชัด
+// mode "adapt" = ทำเป็นขาว-ดำ ตามความสว่างรอบๆ แต่ละจุด (ช่วยกับแสงไม่เท่ากัน)
+function prepCanvas(kind, full, mode) {
+  var b = scan[kind].base;
+  var r = full ? { x: 0, y: 0, w: 1, h: 1 } : scan[kind].crop;
+  var sx = r.x * b.width, sy = r.y * b.height;
+  var sw = Math.max(1, r.w * b.width), sh = Math.max(1, r.h * b.height);
+  var s = Math.min(full ? 2.5 : 4, (full ? 1600 : 1000) / Math.max(sw, sh));
+  var pad = full ? 0 : 24;
+  var cw = Math.round(sw * s), ch = Math.round(sh * s);
+  var cv = newCanvas(cw + pad * 2, ch + pad * 2);
+  var ctx = cv.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(b, sx, sy, sw, sh, pad, pad, cw, ch);
   var data = ctx.getImageData(0, 0, cv.width, cv.height);
   var px = data.data, hist = [], i, n = px.length / 4;
   for (i = 0; i < 256; i++) { hist[i] = 0; }
@@ -2515,7 +2673,7 @@ function prepCanvas(img, rot, mode) {
   }
   if (mode === "adapt") {
     var W = cv.width, H = cv.height, x, y;
-    var r = Math.max(8, Math.round(Math.max(W, H) * 0.04));
+    var rad = Math.max(8, Math.round(Math.max(W, H) * 0.04));
     var ii = new Float64Array((W + 1) * (H + 1));
     for (y = 0; y < H; y++) {
       var rs = 0;
@@ -2526,57 +2684,82 @@ function prepCanvas(img, rot, mode) {
     }
     var out = new Uint8Array(W * H);
     for (y = 0; y < H; y++) {
-      var y0 = Math.max(0, y - r), y1 = Math.min(H, y + r + 1);
+      var y0 = Math.max(0, y - rad), y1 = Math.min(H, y + rad + 1);
       for (x = 0; x < W; x++) {
-        var x0 = Math.max(0, x - r), x1 = Math.min(W, x + r + 1);
+        var x0 = Math.max(0, x - rad), x1 = Math.min(W, x + rad + 1);
         var mean = (ii[y1 * (W + 1) + x1] - ii[y0 * (W + 1) + x1] - ii[y1 * (W + 1) + x0] + ii[y0 * (W + 1) + x0]) / ((y1 - y0) * (x1 - x0));
         out[y * W + x] = px[(y * W + x) * 4] < mean - 10 ? 0 : 255;
       }
     }
     for (i = 0; i < out.length; i++) { px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = out[i]; }
   }
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.putImageData(data, 0, 0);
   return cv;
 }
 
-// อ่านรูปทีละรอบตาม passes = [[psm, mode], ...] หยุดเมื่อ done(ข้อความ) บอกว่าพอแล้ว
-function ocrPasses(kind, passes, done) {
-  var st = $(kind + "Status");
-  var img = $(kind + "Img");
-  scan.statusEl = st;
-  return loadOcr(st).then(function (w) {
-    var canvases = {};
-    var texts = [];
-    var i = 0;
-    function next() {
-      if (i >= passes.length) { return texts.join("\n"); }
-      var psm = passes[i][0], mode = passes[i][1];
-      i++;
-      if (!canvases[mode]) { canvases[mode] = prepCanvas(img, scan[kind].rot, mode); }
-      var canvas = canvases[mode];
-      return w.setParameters({ tessedit_pageseg_mode: psm })
-        .then(function () { return w.recognize(canvas); })
-        .then(function (r) {
-          texts.push((r && r.data && r.data.text) || "");
-          if (done && done(texts.join("\n"))) { return texts.join("\n"); }
-          return next();
-        });
-    }
-    return next();
+// อ่านทีละรอบตาม passes = [[psm, mode], ...] หยุดเมื่อ done(ข้อความ) บอกว่าพอแล้ว
+// ทำทีละงาน (บัตร/ป้าย ไม่อ่านพร้อมกัน จะได้ไม่แย่งกัน)
+var ocrQueue = Promise.resolve();
+function ocrPasses(kind, full, passes, done) {
+  var job = ocrQueue.then(function () {
+    return loadOcr().then(function (w) {
+      scan.cur = kind;
+      var canvases = {};
+      var texts = [];
+      var i = 0;
+      function next() {
+        if (i >= passes.length) { return texts.join("\n"); }
+        var psm = passes[i][0], mode = passes[i][1];
+        i++;
+        if (!canvases[mode]) { canvases[mode] = prepCanvas(kind, full, mode); }
+        return w.setParameters({ tessedit_pageseg_mode: psm })
+          .then(function () { return w.recognize(canvases[mode], {}, { text: true, blocks: false, hocr: false, tsv: false }); })
+          .then(function (r) {
+            texts.push((r && r.data && r.data.text) || "");
+            if (done && done(texts.join("\n"))) { return texts.join("\n"); }
+            return next();
+          });
+      }
+      return next();
+    });
   });
+  ocrQueue = job.catch(function () {});
+  return job;
 }
 
-function scanId() {
+// สถานะกำลังอ่าน: ปิดปุ่มระหว่างอ่าน และจับเวลา
+function setBusy(kind, on, text) {
+  scan[kind].busy = on;
+  ["Go", "All", "Rot"].forEach(function (b) { $(kind + b).disabled = on; });
+  if (on) {
+    scan[kind].busyText = text;
+    scan[kind].t0 = Date.now();
+    $(kind + "Status").textContent = text;
+    return "";
+  }
+  return ((Date.now() - scan[kind].t0) / 1000).toFixed(1);
+}
+
+function needCrop(kind, full) {
+  if (full || scan[kind].crop) { return false; }
+  $(kind + "Status").textContent = "👆 ลากนิ้วบนรูปวาดกรอบให้ครอบ" + (kind === "id" ? "เลข 13 หลัก" : "ป้ายทะเบียน") + "ก่อน แล้วกด 🔍";
+  return true;
+}
+
+function scanId(full) {
+  if (!scan.id.base || scan.id.busy || needCrop("id", full)) { return; }
   var st = $("idStatus");
   $("idAlts").innerHTML = "";
-  st.textContent = "กำลังอ่านเลขบัตร...";
-  ocrPasses("id", [["6", "gray"], ["11", "gray"], ["6", "adapt"]], function (t) { return findIdInText(t).valid.length > 0; })
+  setBusy("id", true, full ? "กำลังอ่านทั้งรูป..." : "กำลังอ่านเลขในกรอบ...");
+  var passes = full ? [["6", "gray"], ["11", "gray"], ["6", "adapt"]]
+                    : [["6", "gray"], ["7", "gray"], ["6", "adapt"], ["11", "gray"]];
+  ocrPasses("id", full, passes, function (t) { return findIdInText(t).valid.length > 0; })
     .then(function (text) {
+      var sec = setBusy("id", false);
       var res = findIdInText(text);
       if (res.valid.length) {
         $("idNum").value = idFormat(res.valid[0]);
-        st.textContent = "อ่านเลขบัตรได้ ✓ ตรวจกับบัตรอีกครั้ง";
+        st.textContent = "อ่านเลขบัตรได้ ✓ (" + sec + " วินาที) ตรวจกับบัตรอีกครั้ง";
         if (res.valid.length > 1) {
           var box = $("idAlts");
           box.innerHTML = '<span class="hint" style="margin:0">พบหลายเลข เลือกที่ตรงกับบัตร:</span>';
@@ -2590,81 +2773,69 @@ function scanId() {
         }
       } else if (res.fallback) {
         $("idNum").value = idFormat(res.fallback);
-        st.textContent = "อ่านได้ 13 หลัก แต่ไม่ผ่านสูตรตรวจ — แก้ตัวเลขที่ผิดในช่อง หรือถ่ายใหม่";
+        st.textContent = "อ่านได้ 13 หลัก แต่ไม่ผ่านสูตรตรวจ — แก้ตัวเลขที่ผิดในช่อง หรือลากกรอบใหม่แล้วอ่านอีกครั้ง";
       } else {
-        st.textContent = "ไม่พบเลขบัตร — ถ่ายใหม่ให้ใกล้และตรงขึ้น กด ↻ หมุนรูป หรือพิมพ์เอง";
+        st.textContent = full ? "ไม่พบเลขบัตร — ลากกรอบครอบเฉพาะเลข 13 หลักแล้วกด 🔍 หรือ ↻ หมุนรูป"
+                              : "ไม่พบเลขในกรอบ — ลากกรอบให้ครอบเลข 13 หลักพอดีขึ้น หรือ ↻ หมุนรูป หรือพิมพ์เอง";
       }
       drawIdCheck();
       update();
     })
-    .catch(function () { st.textContent = "⚠️ โหลดตัวอ่านไม่สำเร็จ — เช็กอินเทอร์เน็ตแล้วลองใหม่ (หรือพิมพ์เลขเอง)"; });
+    .catch(function () { setBusy("id", false); st.textContent = "⚠️ โหลดตัวอ่านไม่สำเร็จ — เช็กอินเทอร์เน็ตแล้วลองใหม่ (หรือพิมพ์เลขเอง)"; });
 }
 
-function scanPlate() {
+function scanPlate(full) {
+  if (!scan.pl.base || scan.pl.busy || needCrop("pl", full)) { return; }
   var st = $("plStatus");
-  st.textContent = "กำลังอ่านป้ายทะเบียน...";
-  ocrPasses("pl", [["11", "gray"], ["6", "gray"], ["6", "adapt"], ["11", "adapt"]], function (t) {
+  setBusy("pl", true, full ? "กำลังอ่านทั้งรูป..." : "กำลังอ่านป้ายในกรอบ...");
+  var passes = full ? [["11", "gray"], ["6", "gray"], ["6", "adapt"], ["11", "adapt"]]
+                    : [["6", "gray"], ["11", "gray"], ["6", "adapt"], ["11", "adapt"]];
+  ocrPasses("pl", full, passes, function (t) {
     var r = readPlate(t);
     return !!(r.plate && r.province);   // ได้ทั้งเลขและจังหวัดแล้ว ไม่ต้องอ่านรอบต่อไป
   })
     .then(function (text) {
+      var sec = setBusy("pl", false);
       var res = readPlate(text);
       if (res.plate || res.province) {
         $("plNum").value = (res.plate + " " + res.province).trim();   // เช่น "กข 1234 นราธิวาส"
       }
       if (res.plate && res.province) {
-        st.textContent = "อ่านป้ายได้ ✓ ตรวจกับป้ายอีกครั้ง";
+        st.textContent = "อ่านป้ายได้ ✓ (" + sec + " วินาที) ตรวจกับป้ายอีกครั้ง";
       } else if (res.plate) {
-        st.textContent = "อ่านเลขทะเบียนได้ แต่ไม่เจอชื่อจังหวัด — พิมพ์ชื่อจังหวัดต่อท้ายในช่อง";
+        st.textContent = "อ่านเลขทะเบียนได้ แต่ไม่เจอชื่อจังหวัด — ลากกรอบให้รวมชื่อจังหวัด หรือพิมพ์ต่อท้ายในช่อง";
       } else if (res.province) {
-        st.textContent = "เจอชื่อจังหวัด แต่อ่านเลขทะเบียนไม่ได้ — พิมพ์เอง หรือถ่ายใหม่";
+        st.textContent = "เจอชื่อจังหวัด แต่อ่านเลขทะเบียนไม่ได้ — ลากกรอบให้พอดีป้ายแล้วอ่านใหม่ หรือพิมพ์เอง";
       } else {
-        st.textContent = "อ่านป้ายไม่ได้ — ถ่ายใหม่ให้ตรงและเต็มกรอบ กด ↻ หมุนรูป หรือพิมพ์เอง";
+        st.textContent = full ? "อ่านป้ายไม่ได้ — ลากกรอบครอบเฉพาะป้ายแล้วกด 🔍 หรือ ↻ หมุนรูป"
+                              : "อ่านป้ายในกรอบไม่ได้ — ลากกรอบให้พอดีป้าย หรือ ↻ หมุนรูป หรือพิมพ์เอง";
       }
       drawPlateCheck();
       update();
     })
-    .catch(function () { st.textContent = "⚠️ โหลดตัวอ่านไม่สำเร็จ — เช็กอินเทอร์เน็ตแล้วลองใหม่ (หรือพิมพ์เอง)"; });
+    .catch(function () { setBusy("pl", false); st.textContent = "⚠️ โหลดตัวอ่านไม่สำเร็จ — เช็กอินเทอร์เน็ตแล้วลองใหม่ (หรือพิมพ์เอง)"; });
 }
 
-// เลือกรูป -> แสดงตัวอย่าง -> อ่านทันที
-function onPhoto(kind, file, run) {
-  if (!file) { return; }
-  if (scan[kind].src) { URL.revokeObjectURL(scan[kind].src); }
-  scan[kind].src = URL.createObjectURL(file);
-  scan[kind].rot = 0;
-  var img = $(kind + "Img");
-  img.style.transform = "";
-  img.onload = function () { run(); };
-  img.src = scan[kind].src;
-  img.style.display = "block";
-  $(kind + "Tools").style.display = "flex";
-}
-
-function rotatePhoto(kind, run) {
-  if (!scan[kind].src) { return; }
-  scan[kind].rot = (scan[kind].rot + 90) % 360;
-  $(kind + "Img").style.transform = "rotate(" + scan[kind].rot + "deg)";
-  run();
-}
-
-$("idFile").addEventListener("change", function () { onPhoto("id", this.files[0], scanId); this.value = ""; });
-$("plFile").addEventListener("change", function () { onPhoto("pl", this.files[0], scanPlate); this.value = ""; });
-$("idRot").onclick = function () { rotatePhoto("id", scanId); };
-$("plRot").onclick = function () { rotatePhoto("pl", scanPlate); };
-$("idRescan").onclick = scanId;
-$("plRescan").onclick = scanPlate;
+$("idFile").addEventListener("change", function () { onPhoto("id", this.files[0]); this.value = ""; });
+$("plFile").addEventListener("change", function () { onPhoto("pl", this.files[0]); this.value = ""; });
+$("idGo").onclick = function () { scanId(false); };
+$("plGo").onclick = function () { scanPlate(false); };
+$("idAll").onclick = function () { scanId(true); };
+$("plAll").onclick = function () { scanPlate(true); };
+$("idRot").onclick = function () { rotatePhoto("id"); };
+$("plRot").onclick = function () { rotatePhoto("pl"); };
+setupCrop("id");
+setupCrop("pl");
 $("idNum").addEventListener("input", function () { $("idAlts").innerHTML = ""; drawIdCheck(); update(); });
 $("plNum").addEventListener("input", function () { drawPlateCheck(); update(); });
 
 function clearScan() {
   ["id", "pl"].forEach(function (k) {
-    if (scan[k].src) { URL.revokeObjectURL(scan[k].src); }
-    scan[k] = { rot: 0, src: null };
+    scan[k] = { base: null, crop: null, busy: false };
     $(k + "Img").removeAttribute("src");
-    $(k + "Img").style.display = "none";
     $(k + "Tools").style.display = "none";
     $(k + "Status").textContent = "";
+    ["Go", "All", "Rot"].forEach(function (b) { $(k + b).disabled = false; });
   });
   $("idNum").value = "";
   $("idAlts").innerHTML = "";
@@ -2812,6 +2983,7 @@ function showPage(n) {
     $(id).style.display = (n === 6) ? "none" : "";
   });
   $("tab6").classList.toggle("on", n === 6);
+  if (n === 6) { loadOcr(); }   // เตรียมตัวอ่านไว้ก่อน กดสแกนแล้วจะได้เร็ว
   $("tab1").classList.toggle("on", n === 1);
   $("tab2").classList.toggle("on", n === 2);
   $("tab3").classList.toggle("on", n === 3);
@@ -3340,7 +3512,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "7 ต.ค. 69 · รุ่นที่ 36";
+var APP_VERSION = "7 ต.ค. 69 · รุ่นที่ 37";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
