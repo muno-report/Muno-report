@@ -264,6 +264,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
         <li>กด <b>🔍 อ่านในกรอบ</b> — ครอบพอดี = อ่านเร็วและแม่นกว่าอ่านทั้งรูปมาก</li>
         <li>เลขบัตรขึ้น <b>✓ ถูกต้อง</b> = ครบ 13 หลักและหลักสุดท้ายตรงตามสูตร · ขึ้น ✗ ให้ตรวจกับบัตรแล้วแก้ในช่อง</li>
         <li>อ่านไม่ได้: ลากกรอบใหม่ให้พอดีขึ้น กด ↻ หมุนรูป หรือพิมพ์เอง</li>
+        <li>ถ้าเปิด <b>ใช้ Google ช่วยอ่าน</b> ภาพเฉพาะในกรอบจะถูกส่งให้ Google อ่าน (แม่นกว่า ต้องมีเน็ต) · ไม่มีเน็ตจะใช้ตัวอ่านในเครื่องแทนเอง</li>
         <li>ข้อมูลหน้านี้ไม่ถูกเก็บไว้ในเครื่อง · ถ่ายรูปใหม่ = อ่านใหม่แทนของเดิม</li>
       </ul>
     </details>
@@ -611,11 +612,13 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <!-- ================= หน้า 6: สแกนบัตร / ทะเบียนรถ ================= -->
 <div id="page6" style="display:none">
 
-<p class="hint" id="ocrState" style="margin:0 4px 10px"></p>
+<p class="hint" id="ocrState" style="margin:0 4px 4px"></p>
+<label class="closeOpt" id="cloudBox" style="display:none;padding:4px"><input type="checkbox" id="cloudOn" checked> ใช้ Google ช่วยอ่าน (แม่นกว่า · ต้องมีเน็ต)</label>
+<p class="hint" id="privNote" style="margin:0 4px 10px"></p>
 
 <div class="c">
   <div class="l" style="margin-top:0;font-size:18px">🪪 เลขบัตรประชาชน</div>
-  <p class="hint" style="margin-top:0">ถ่ายด้านหน้าบัตรให้ชัด ไม่มีแสงสะท้อน · อ่านในเครื่อง ไม่ส่งรูปออกไปไหน</p>
+  <p class="hint" style="margin-top:0">ถ่ายด้านหน้าบัตรให้ชัด ไม่มีแสงสะท้อน</p>
   <label class="btn on scanBtn">📷 ถ่ายรูป / เลือกรูปบัตร<input type="file" accept="image/*" id="idFile" hidden></label>
   <div id="idTools" style="display:none">
     <div class="cropStage" id="idStage">
@@ -735,6 +738,11 @@ var LIFF_ID = "2011797531-9SFiiix4";
 // ใส่ลิงก์ Google Apps Script (ลงท้ายด้วย /exec) ตรงนี้
 // ถ้าเว้นว่าง รายการที่สร้างเองจะจำไว้แค่ในเครื่องตัวเอง
 var V4_API_URL = "https://script.google.com/macros/s/AKfycbwtALF7_U44l1KcsehomQaq33j9n-lTnM1udE8f7T2gLdeBBSbThd5S4xt2kwR7xZTt/exec";
+
+// ================== ตัวอ่านตัวหนังสือของ Google (หน้าสแกน) ==================
+// ใส่ลิงก์เว็บแอปของสคริปต์ muno-ocr (ลงท้ายด้วย /exec) ตรงนี้
+// ถ้าเว้นว่าง จะใช้ตัวอ่านในเครื่องอย่างเดียว
+var OCR_API_URL = "https://script.google.com/macros/s/AKfycbwqTWpHJpteCDhDd5iHV8lWf95XYSM7s8IEFYejc5CyfA5Zpgb_Wzh84XNBjRSLhfRNHQ/exec";
 
 // ================== ข้อมูลที่แก้ไขได้ ==================
 
@@ -3202,6 +3210,50 @@ function assemblePlate(rows) {
   return { plate: combos[0], province: pname, full: true, alts: combos.slice(1, 5) };
 }
 
+// ---------- อ่านด้วย Google (ถ้าตั้งค่าไว้) ----------
+function cloudEnabled() { return !!OCR_API_URL && $("cloudOn").checked && navigator.onLine !== false; }
+
+function drawPrivNote() {
+  $("cloudBox").style.display = OCR_API_URL ? "flex" : "none";
+  $("privNote").textContent = cloudEnabled()
+    ? "🔒 ภาพเฉพาะในกรอบจะถูกส่งให้ Google อ่าน แล้วลบทิ้งทันที · ไม่มีเน็ตจะใช้ตัวอ่านในเครื่องแทน"
+    : "🔒 อ่านในเครื่อง ไม่ส่งรูปออกไปไหน";
+}
+try { if (localStorage.getItem("cloudOn") === "0") { $("cloudOn").checked = false; } } catch (e) {}
+$("cloudOn").addEventListener("change", function () {
+  try { localStorage.setItem("cloudOn", this.checked ? "1" : "0"); } catch (e) {}
+  drawPrivNote();
+});
+drawPrivNote();
+
+// ส่งภาพให้สคริปต์ muno-ocr อ่าน -> ได้ข้อความกลับ (รอไม่เกิน 15 วินาที)
+function cloudOcr(cv) {
+  var b64 = cv.toDataURL("image/jpeg", 0.85).split(",")[1];
+  var ctrl = window.AbortController ? new AbortController() : null;
+  var timer = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, 15000);
+  return fetch(OCR_API_URL, { method: "POST", body: JSON.stringify({ action: "ocr", image: b64 }), signal: ctrl ? ctrl.signal : undefined })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      clearTimeout(timer);
+      if (!d || !d.ok) { throw new Error((d && d.error) || "ocr"); }
+      return String(d.text || "");
+    }, function (err) { clearTimeout(timer); throw err; });
+}
+
+// ขั้นแรกของการอ่าน: ให้ Google อ่านก่อน (ถ้าเปิดไว้) · ไม่ได้ = คืน "" แล้วไปใช้ตัวอ่านในเครื่อง
+function cloudFirst(kind, full, tilt, info) {
+  if (!cloudEnabled()) { return Promise.resolve(""); }
+  $(kind + "Status").textContent = "กำลังส่งให้ Google อ่าน...";
+  var cv = full ? cropCanvas(kind, true, 0, 1800, "gray") : cropCanvas(kind, false, tilt, 1200, "gray");
+  return cloudOcr(cv).then(function (t) { info.cloud = "ok"; return t; }, function () { info.cloud = "fail"; return ""; });
+}
+function localNote(kind, info) {
+  var t = (info.cloud === "fail" ? "Google ไม่ตอบ — " : "") + "กำลังอ่านด้วยตัวอ่านในเครื่อง...";
+  scan[kind].busyText = t;
+  $(kind + "Status").textContent = t;
+}
+function viaText(info, sec) { return "(" + (info.via === "google" ? "Google · " : "") + sec + " วินาที)"; }
+
 // ---------- อ่าน ----------
 // งานอ่านทำทีละงาน (บัตร/ป้าย ไม่อ่านพร้อมกัน จะได้ไม่แย่งกัน)
 var ocrQueue = Promise.resolve();
@@ -3252,22 +3304,27 @@ function scanId(full) {
   $("idAlts").innerHTML = "";
   setBusy("id", true, full ? "กำลังอ่านทั้งรูป..." : "กำลังอ่านเลขในกรอบ...");
   var tilt = full ? 0 : scan.id.tilt;
-  var text = "";
+  var text = "", info = {};
   var found = function () { return findIdInText(text).valid.length > 0; };
-  withOcr("id", function (w) {
+  cloudFirst("id", full, tilt, info).then(function (ct) {
+    text += "\n" + ct;
+    if (found()) { info.via = "google"; return; }
+    localNote("id", info);
+    return withOcr("id", function (w) {
     var cvs = {};
     function cvOf(mode) { return cvs[mode] || (cvs[mode] = full ? cropCanvas("id", true, 0, 1600, mode) : cropCanvas("id", false, tilt, 1000, mode)); }
     function step(psm, mode, wl) { return function () { return readCv(w, mode === "blur" ? blurCv(cvOf("gray")) : cvOf(mode), psm, wl).then(function (t) { text += "\n" + t; }); }; }
     var steps = full ? [step("6", "gray"), step("11", "gray"), step("6", "adapt")]
                      : [step("7", "gray"), step("7", "blur", "0123456789 -"), step("6", "gray"), step("7", "adapt"), step("11", "gray")];
     return runSteps(steps, found);
+    });
   })
     .then(function () {
       var sec = setBusy("id", false);
       var res = findIdInText(text);
       if (res.valid.length) {
         $("idNum").value = idFormat(res.valid[0]);
-        st.textContent = "อ่านเลขบัตรได้ ✓ (" + sec + " วินาที) ตรวจกับบัตรอีกครั้ง";
+        st.textContent = "อ่านเลขบัตรได้ ✓ " + viaText(info, sec) + " ตรวจกับบัตรอีกครั้ง";
         if (res.valid.length > 1) {
           var box = $("idAlts");
           box.innerHTML = '<span class="hint" style="margin:0">พบหลายเลข เลือกที่ตรงกับบัตร:</span>';
@@ -3327,7 +3384,12 @@ function scanPlate(full) {
     if (!got.province && r.province) { got.province = r.province; }
   }
   var done = function () { return !!(got.full && got.province); };
-  withOcr("pl", function (w) {
+  var info = {};
+  cloudFirst("pl", full, tilt, info).then(function (ct) {
+    if (ct) { take(ct); if (got.full) { info.via = "google"; } }
+    if (done()) { return; }
+    localNote("pl", info);
+    return withOcr("pl", function (w) {
     var cvs = {};
     function cvOf(mode) { return cvs[mode] || (cvs[mode] = full ? cropCanvas("pl", true, 0, 1600, mode) : cropCanvas("pl", false, tilt, 560, mode)); }
     function block(psm, mode) { return function () { return readCv(w, cvOf(mode), psm).then(take); }; }
@@ -3362,6 +3424,7 @@ function scanPlate(full) {
     var steps = full ? [block("11", "gray"), block("6", "gray"), block("6", "adapt"), block("11", "adapt")]
                      : [lines("gray"), block("6", "gray"), block("11", "gray")];
     return runSteps(steps, done);
+    });
   })
     .then(function () {
       var sec = setBusy("pl", false);
@@ -3372,7 +3435,7 @@ function scanPlate(full) {
       if (got.plate && !got.full) {
         st.textContent = "อ่านได้บางส่วน: " + got.plate + " (" + sec + " วินาที) — พิมพ์เลขทะเบียนต่อในช่อง หรือซูมวาดกรอบให้พอดีป้ายแล้วอ่านใหม่";
       } else if (got.plate && got.province) {
-        st.textContent = "อ่านป้ายได้ ✓ (" + sec + " วินาที) ตรวจกับป้ายอีกครั้ง";
+        st.textContent = "อ่านป้ายได้ ✓ " + viaText(info, sec) + " ตรวจกับป้ายอีกครั้ง";
       } else if (got.plate) {
         st.textContent = "อ่านเลขทะเบียนได้ แต่ไม่เจอชื่อจังหวัด — วาดกรอบให้รวมชื่อจังหวัด หรือพิมพ์ต่อท้ายในช่อง";
       } else if (got.province) {
@@ -4085,7 +4148,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "10 ต.ค. 69 · รุ่นที่ 39";
+var APP_VERSION = "10 ต.ค. 69 · รุ่นที่ 41";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
