@@ -192,6 +192,9 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 .cropBox i[data-h="tr"]{right:-2px;top:-2px;border-width:5px 5px 0 0}
 .cropBox i[data-h="bl"]{left:-2px;bottom:-2px;border-width:0 0 5px 5px}
 .cropBox i[data-h="br"]{right:-2px;bottom:-2px;border-width:0 5px 5px 0}
+.rawBox{margin:0 0 6px;font-size:13px;color:var(--mu)}
+.rawBox summary{cursor:pointer}
+.rawBox pre{margin:6px 0 0;font-size:12px;max-height:160px;overflow:auto}
 .copyRow{display:flex;gap:8px;align-items:stretch}
 .copyRow input{flex:1;min-width:0}
 .copyBtn{flex:none;padding:8px 12px;font-size:15px;white-space:nowrap}
@@ -650,6 +653,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     </div>
   </div>
   <p class="hint" id="idStatus"></p>
+  <details class="rawBox" id="idRawBox" style="display:none"><summary>ดูข้อความที่ตัวอ่านเห็น</summary><pre id="idRaw"></pre></details>
   <div class="lb2">เลขบัตร 13 หลัก <i>แก้หรือพิมพ์เองได้</i></div>
   <div class="copyRow">
     <input type="text" id="idNum" class="bigIn" inputmode="numeric" autocomplete="off" placeholder="x-xxxx-xxxxx-xx-x">
@@ -693,6 +697,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     </div>
   </div>
   <p class="hint" id="plStatus"></p>
+  <details class="rawBox" id="plRawBox" style="display:none"><summary>ดูข้อความที่ตัวอ่านเห็น</summary><pre id="plRaw"></pre></details>
   <div class="lb2">ทะเบียนรถ และจังหวัด <i>แก้หรือพิมพ์เองได้</i></div>
   <div class="copyRow">
     <input type="text" id="plNum" class="bigIn" autocomplete="off" placeholder="เช่น กข 1234 นราธิวาส">
@@ -2483,40 +2488,57 @@ function plateClean(line) {
 // full = ได้ทั้งหมวดอักษรและตัวเลข · ถ้าได้ไม่ครบจะคืนส่วนที่อ่านได้ (เช่น "1กน") ให้พิมพ์ต่อ
 function readPlate(text) {
   var lines = normThai(text).split("\n");
-  var prov = null, rest = [];
+  var prov = null, seq = [];
+  function thaiLen(t) { return (t.match(/[ก-๎]/g) || []).length; }   // นับตัวอักษรไทยรวมสระ (เช่น ยะลา = 4)
   for (var i = 0; i < lines.length; i++) {
-    if (!lines[i].trim()) { continue; }
-    var p = findProvinceIn(lines[i]);
-    if (p && (!prov || p.score < prov.score)) { prov = p; }
-    if (p && !/\d/.test(lines[i])) { continue; }   // บรรทัดชื่อจังหวัด (ไม่มีตัวเลข) ไม่เอาไปหาเลขทะเบียน
-    rest.push(lines[i]);
-  }
-  var province = prov ? prov.name : "";
-  // 1) บรรทัดเดียวมีครบ เช่น "กข 1234"
-  var one = findPlateIn(rest.join("\n").split("\n").map(plateClean).join("\n"));
-  if (one) { return { plate: one, province: province, full: true }; }
-  // 2) ป้ายรถจักรยานยนต์: บรรทัดหมวดอักษร ("1กข") + บรรทัดตัวเลข ("123") แยกกัน
-  var letters = "", digits = "";
-  for (var j = 0; j < rest.length; j++) {
-    var c = plateClean(rest[j]).replace(/ /g, "");
-    var mL = c.match(/^(\d[ก-ฮ]{1,3}|[ก-ฮ]{2,3})$/);   // หมวดอักษรอย่างน้อย 2 ตัว (หรือเลขนำหน้า)
-    var mD = c.match(/^(\d{1,4})$/);
-    if (mL && !letters) { letters = mL[1]; }
-    else if (mD && letters && !digits) { digits = mD[1]; }
-  }
-  if (letters && digits) { return { plate: letters + " " + digits, province: province, full: true }; }
-  // 3) ได้บางส่วน: ใส่ไว้ก่อนให้พิมพ์ต่อเอง
-  if (!letters) {
-    for (var k = 0; k < rest.length && !letters; k++) {
-      var m2 = plateClean(rest[k]).replace(/ /g, "").match(/^(\d?[ก-ฮ]{2,3})\d*$/);
-      if (m2) { letters = m2[1]; }
+    var line = lines[i].trim();
+    if (!line) { continue; }
+    // ทั้งบรรทัดเป็นชื่อจังหวัด (ไม่มีตัวเลข) -> เก็บจังหวัด ไม่เอาไปหาเลขทะเบียน
+    var pl = findProvinceIn(line);
+    if (pl && !/\d/.test(line)) {
+      if (!prov || pl.score < prov.score) { prov = pl; }
+      continue;
+    }
+    // แยกเป็นคำ: คำที่เป็นชื่อจังหวัดตัดออก (กันพยัญชนะท้ายของ "นราธิวาส" ไปปนกับเลขทะเบียน)
+    var words = line.split(/\s+/);
+    for (var w = 0; w < words.length; w++) {
+      var raw = words[w];
+      if (!raw) { continue; }
+      var pw = !/\d/.test(raw) && thaiLen(raw) >= 3 ? findProvinceIn(raw) : null;
+      if (pw && pw.score <= 0.35) {
+        if (!prov || pw.score < prov.score) { prov = pw; }
+        continue;
+      }
+      plateClean(raw).split(" ").forEach(function (t) { if (t) { seq.push(t); } });
     }
   }
-  if (!letters) {
-    // ไม่เจอหมวดอักษรเลย: เอาบรรทัดที่เป็นตัวเลขล้วนอย่างเดียวไม่ได้ (ไม่รู้ว่าเป็นเลขอะไร)
-    return { plate: "", province: province, full: false };
+  var province = prov ? prov.name : "";
+  // เลขตัวเดียวที่อยู่หน้าหมวดอักษร เช่น "1 กธ" -> "1กธ"
+  var toks = [];
+  for (var k = 0; k < seq.length; k++) {
+    if (/^\d$/.test(seq[k]) && k + 1 < seq.length && /^[ก-ฮ]{2,3}(\d{1,4})?$/.test(seq[k + 1])) { toks.push(seq[k] + seq[k + 1]); k++; }
+    else { toks.push(seq[k]); }
   }
-  return { plate: letters, province: province, full: false };
+  // หาหมวดอักษร + เลขทะเบียน แล้วให้คะแนนตามหน้าตาป้ายจริง
+  var best = null, partial = null;
+  for (var j = 0; j < toks.length; j++) {
+    var m = toks[j].match(/^(\d?)([ก-ฮ]{2,3})(\d{1,4})?$/);
+    if (!m) { continue; }
+    var letters = m[1] + m[2], digits = "", gap = 0;
+    if (m[3] && m[3].charAt(0) !== "0") { digits = m[3]; }
+    for (var g = j + 1; !digits && g < Math.min(toks.length, j + 4); g++) {
+      if (/^[1-9]\d{0,3}$/.test(toks[g])) { digits = toks[g]; gap = g - j; }
+    }
+    var score = (m[1] && m[2].length === 2 ? 2 : 0)      // แบบใหม่ เช่น 1กธ
+              + (m[2].length === 2 ? 1 : 0)              // หมวด 2 ตัวพบบ่อยที่สุด
+              + (digits && gap <= 1 ? 1 : 0)             // เลขอยู่ถัดไปทันที
+              - j * 0.01;                                // เท่ากัน = เอาอันที่อยู่บนกว่า
+    if (digits) { if (!best || score > best.score) { best = { plate: letters + " " + digits, score: score }; } }
+    else if (!partial || score > partial.score) { partial = { plate: letters, score: score }; }
+  }
+  if (best) { return { plate: best.plate, province: province, full: true }; }
+  if (partial) { return { plate: partial.plate, province: province, full: false }; }
+  return { plate: "", province: province, full: false };
 }
 
 // ทะเบียน + จังหวัด อยู่ในช่องเดียว เช่น "กข 1234 นราธิวาส"
@@ -3252,6 +3274,12 @@ function localNote(kind, info) {
   scan[kind].busyText = t;
   $(kind + "Status").textContent = t;
 }
+// เก็บข้อความดิบที่ตัวอ่านเห็น (Google / ในเครื่อง) ไว้ให้กดดู
+function showRaw(kind, parts) {
+  var txt = parts.filter(function (x) { return x && x[1] && x[1].trim(); }).map(function (x) { return "【" + x[0] + "】\n" + x[1].trim(); }).join("\n\n");
+  $(kind + "Raw").textContent = txt || "(ไม่มีข้อความ)";
+  $(kind + "RawBox").style.display = "block";
+}
 function viaText(info, sec) { return "(" + (info.via === "google" ? "Google · " : "") + sec + " วินาที)"; }
 
 // ---------- อ่าน ----------
@@ -3306,14 +3334,16 @@ function scanId(full) {
   var tilt = full ? 0 : scan.id.tilt;
   var text = "", info = {};
   var found = function () { return findIdInText(text).valid.length > 0; };
+  var raws = [];
   cloudFirst("id", full, tilt, info).then(function (ct) {
     text += "\n" + ct;
+    raws.push(["Google", ct]);
     if (found()) { info.via = "google"; return; }
     localNote("id", info);
     return withOcr("id", function (w) {
     var cvs = {};
     function cvOf(mode) { return cvs[mode] || (cvs[mode] = full ? cropCanvas("id", true, 0, 1600, mode) : cropCanvas("id", false, tilt, 1000, mode)); }
-    function step(psm, mode, wl) { return function () { return readCv(w, mode === "blur" ? blurCv(cvOf("gray")) : cvOf(mode), psm, wl).then(function (t) { text += "\n" + t; }); }; }
+    function step(psm, mode, wl) { return function () { return readCv(w, mode === "blur" ? blurCv(cvOf("gray")) : cvOf(mode), psm, wl).then(function (t) { text += "\n" + t; raws.push(["ในเครื่อง " + mode + " psm" + psm, t]); }); }; }
     var steps = full ? [step("6", "gray"), step("11", "gray"), step("6", "adapt")]
                      : [step("7", "gray"), step("7", "blur", "0123456789 -"), step("6", "gray"), step("7", "adapt"), step("11", "gray")];
     return runSteps(steps, found);
@@ -3321,6 +3351,7 @@ function scanId(full) {
   })
     .then(function () {
       var sec = setBusy("id", false);
+      showRaw("id", raws);
       var res = findIdInText(text);
       if (res.valid.length) {
         $("idNum").value = idFormat(res.valid[0]);
@@ -3384,15 +3415,16 @@ function scanPlate(full) {
     if (!got.province && r.province) { got.province = r.province; }
   }
   var done = function () { return !!(got.full && got.province); };
-  var info = {};
+  var info = {}, raws = [];
   cloudFirst("pl", full, tilt, info).then(function (ct) {
+    raws.push(["Google", ct]);
     if (ct) { take(ct); if (got.full) { info.via = "google"; } }
     if (done()) { return; }
     localNote("pl", info);
     return withOcr("pl", function (w) {
     var cvs = {};
     function cvOf(mode) { return cvs[mode] || (cvs[mode] = full ? cropCanvas("pl", true, 0, 1600, mode) : cropCanvas("pl", false, tilt, 560, mode)); }
-    function block(psm, mode) { return function () { return readCv(w, cvOf(mode), psm).then(take); }; }
+    function block(psm, mode) { return function () { return readCv(w, cvOf(mode), psm).then(function (t) { raws.push(["ในเครื่อง ทั้งกรอบ psm" + psm, t]); take(t); }); }; }
     function lines(mode) {
       return function () {
         var bands = findBands(cvOf(mode), full ? 0 : 24), rows = [];
@@ -3415,6 +3447,7 @@ function scanPlate(full) {
           });
         });
         return chain.then(function () {
+          raws.push(["ในเครื่อง ทีละบรรทัด", rows.map(function (r0) { return r0.texts.join(" | "); }).join("\n")]);
           var r = assemblePlate(rows);
           if (r.plate && (!got.plate || (r.full && !got.full))) { got.plate = r.plate; got.full = r.full; got.alts = r.alts || []; }
           if (!got.province && r.province) { got.province = r.province; }
@@ -3428,6 +3461,7 @@ function scanPlate(full) {
   })
     .then(function () {
       var sec = setBusy("pl", false);
+      showRaw("pl", raws);
       if (got.plate || got.province) {
         $("plNum").value = (got.plate + " " + got.province).trim();   // เช่น "กข 1234 นราธิวาส"
       }
@@ -3470,6 +3504,7 @@ function clearScan() {
     $(k + "Tools").style.display = "none";
     $(k + "PrevWrap").style.display = "none";
     $(k + "Status").textContent = "";
+    $(k + "RawBox").style.display = "none";
     ["Go", "All", "Rot"].forEach(function (b) { $(k + b).disabled = false; });
   });
   $("idNum").value = "";
@@ -4148,7 +4183,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "10 ต.ค. 69 · รุ่นที่ 41";
+var APP_VERSION = "10 ต.ค. 69 · รุ่นที่ 42";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
