@@ -175,8 +175,17 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 .alts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .alts .btn{padding:6px 10px;font-size:14px}
 .bigIn{font-size:20px!important;font-weight:700;letter-spacing:1px;text-align:center}
-.cropStage{position:relative;width:fit-content;max-width:100%;margin:10px auto 8px;overflow:hidden;border-radius:10px;border:1px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.cropImg{display:block;max-width:100%;max-height:62vh;pointer-events:none;-webkit-user-drag:none}
+.cropStage{position:relative;max-width:100%;margin:10px auto 8px;overflow:hidden;border-radius:10px;border:1px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.cropView{display:block;pointer-events:none}
+.zoomBar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 6px}
+.zoomBar .wide{grid-column:span 2}
+.zoomBar .btn{padding:8px 2px;font-size:13px}
+.prevWrap{border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:8px 0}
+.prevCv{display:block;max-width:100%;max-height:180px;margin:4px auto;background:#fff;border-radius:6px}
+.tiltRow{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:14px}
+.tiltRow input{flex:1;min-width:0;accent-color:var(--gold)}
+.tiltRow b{width:40px;text-align:right}
+.btn:disabled{opacity:.5}
 .cropBox{position:absolute;display:none;border:2px solid var(--gold);box-shadow:0 0 0 9999px rgba(0,0,0,.55);box-sizing:border-box;pointer-events:none}
 .cropBox i{position:absolute;width:min(22px,35%);height:min(22px,35%);border:0 solid var(--gold)}
 .cropBox i[data-h="tl"]{left:-2px;top:-2px;border-width:5px 0 0 5px}
@@ -610,13 +619,30 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
   <label class="btn on scanBtn">📷 ถ่ายรูป / เลือกรูปบัตร<input type="file" accept="image/*" id="idFile" hidden></label>
   <div id="idTools" style="display:none">
     <div class="cropStage" id="idStage">
-      <img id="idImg" class="cropImg" alt="รูปบัตร">
+      <canvas id="idView" class="cropView"></canvas>
       <div class="cropBox" id="idBox"><i data-h="tl"></i><i data-h="tr"></i><i data-h="bl"></i><i data-h="br"></i></div>
     </div>
-    <p class="hint">ลากนิ้วบนรูปเพื่อวาดกรอบ ให้ครอบ <b>เลข 13 หลัก</b> พอดีๆ (ครอบทั้งบัตรก็ได้ แต่ช้ากว่า) · ลากในกรอบเพื่อย้าย · ลากมุมเพื่อย่อ/ขยาย</p>
+    <div class="zoomBar">
+      <button class="btn" id="idZin">＋ ซูม</button>
+      <button class="btn" id="idZout">－ ซูม</button>
+      <button class="btn" id="idZfit">ทั้งรูป</button>
+      <button class="btn" id="idZbox">ซูมที่กรอบ</button>
+      <button class="btn wide" id="idZnew">✏️ ลบกรอบ วาดใหม่</button>
+    </div>
+    <p class="hint">ลากนิ้วบนรูปวาดกรอบให้ครอบ <b>เลข 13 หลัก</b> พอดีๆ · <b>ใช้ 2 นิ้วถ่าง/หุบ</b>เพื่อซูมและเลื่อนรูป · ลากในกรอบเพื่อย้าย · ลากมุมเพื่อย่อ/ขยาย</p>
+    <div class="prevWrap" id="idPrevWrap" style="display:none">
+      <div class="lb2">ภาพที่จะอ่าน <i>ตัวหนังสือควรตรง ชัด เต็มกรอบ</i></div>
+      <canvas id="idPrev" class="prevCv"></canvas>
+      <div class="tiltRow">
+        <span>ปรับเอียง</span>
+        <input type="range" id="idTilt" min="-45" max="45" step="1" value="0" aria-label="ปรับเอียง">
+        <b id="idTiltV">0°</b>
+        <button class="btn small" id="idTiltAuto">อัตโนมัติ</button>
+      </div>
+    </div>
     <button class="btn on scanBtn" id="idGo">🔍 อ่านเลขในกรอบ</button>
     <div class="scanTools">
-      <button class="btn" id="idRot">↻ หมุนรูป</button>
+      <button class="btn" id="idRot">↻ หมุนรูป 90°</button>
       <button class="btn" id="idAll">อ่านทั้งรูป (ช้ากว่า)</button>
     </div>
   </div>
@@ -636,13 +662,30 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
   <label class="btn on scanBtn">📷 ถ่ายรูป / เลือกรูปป้าย<input type="file" accept="image/*" id="plFile" hidden></label>
   <div id="plTools" style="display:none">
     <div class="cropStage" id="plStage">
-      <img id="plImg" class="cropImg" alt="รูปป้ายทะเบียน">
+      <canvas id="plView" class="cropView"></canvas>
       <div class="cropBox" id="plBox"><i data-h="tl"></i><i data-h="tr"></i><i data-h="bl"></i><i data-h="br"></i></div>
     </div>
-    <p class="hint">ลากนิ้วบนรูปเพื่อวาดกรอบ ให้ครอบ <b>ป้ายทะเบียนทั้งป้าย</b> (รวมชื่อจังหวัด) · ลากในกรอบเพื่อย้าย · ลากมุมเพื่อย่อ/ขยาย</p>
+    <div class="zoomBar">
+      <button class="btn" id="plZin">＋ ซูม</button>
+      <button class="btn" id="plZout">－ ซูม</button>
+      <button class="btn" id="plZfit">ทั้งรูป</button>
+      <button class="btn" id="plZbox">ซูมที่กรอบ</button>
+      <button class="btn wide" id="plZnew">✏️ ลบกรอบ วาดใหม่</button>
+    </div>
+    <p class="hint">ลากนิ้วบนรูปวาดกรอบให้ครอบ <b>ป้ายทะเบียนทั้งป้าย</b> (รวมชื่อจังหวัด) · <b>ใช้ 2 นิ้วถ่าง/หุบ</b>เพื่อซูมและเลื่อนรูป · ลากในกรอบเพื่อย้าย · ลากมุมเพื่อย่อ/ขยาย</p>
+    <div class="prevWrap" id="plPrevWrap" style="display:none">
+      <div class="lb2">ภาพที่จะอ่าน <i>ตัวหนังสือควรตรง ชัด เต็มกรอบ</i></div>
+      <canvas id="plPrev" class="prevCv"></canvas>
+      <div class="tiltRow">
+        <span>ปรับเอียง</span>
+        <input type="range" id="plTilt" min="-45" max="45" step="1" value="0" aria-label="ปรับเอียง">
+        <b id="plTiltV">0°</b>
+        <button class="btn small" id="plTiltAuto">อัตโนมัติ</button>
+      </div>
+    </div>
     <button class="btn on scanBtn" id="plGo">🔍 อ่านป้ายในกรอบ</button>
     <div class="scanTools">
-      <button class="btn" id="plRot">↻ หมุนรูป</button>
+      <button class="btn" id="plRot">↻ หมุนรูป 90°</button>
       <button class="btn" id="plAll">อ่านทั้งรูป (ช้ากว่า)</button>
     </div>
   </div>
@@ -653,6 +696,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     <button class="btn copyBtn" id="plCopy">📋 คัดลอก</button>
   </div>
   <div class="chk mu" id="plChk">ยังไม่มีทะเบียนรถ</div>
+  <div class="alts" id="plAlts"></div>
 </div>
 
 
@@ -2295,7 +2339,7 @@ var PROVINCES = ["กรุงเทพมหานคร","กระบี่",
   "สมุทรสงคราม","สมุทรสาคร","สระแก้ว","สระบุรี","สิงห์บุรี","สุโขทัย","สุพรรณบุรี","สุราษฎร์ธานี","สุรินทร์",
   "หนองคาย","หนองบัวลำภู","อ่างทอง","อำนาจเจริญ","อุดรธานี","อุตรดิตถ์","อุทัยธานี","อุบลราชธานี"];
 
-var scan = { id: { base: null, crop: null, busy: false }, pl: { base: null, crop: null, busy: false }, cur: "" };
+var scan = { id: { base: null, crop: null, busy: false, z: 1, cx: 0.5, cy: 0.5, tilt: 0 }, pl: { base: null, crop: null, busy: false, z: 1, cx: 0.5, cy: 0.5, tilt: 0 }, cur: "" };
 var ocrWorker = null;
 var ocrLoading = null;
 
@@ -2374,17 +2418,29 @@ function fuzzyIn(p, t) {
   return best;
 }
 
+// โครงพยัญชนะ (ตัดสระ วรรณยุกต์) ใช้เทียบเมื่อตัวอ่านอ่านสระเพี้ยน เช่น "นราถ้าาสุ" -> นรถส ~ นรธวส
+function thaiSkeleton(s) { return s.replace(/[\u0E30-\u0E3A\u0E40-\u0E4E]/g, ""); }
+
 function findProvinceIn(line) {
-  var t = normThai(line).replace(/[^ก-๎]/g, "");
+  var t = normThai(line).replace(/[^\u0E01-\u0E4E]/g, "");
   if (t.length < 2) { return null; }
+  var tSk = thaiSkeleton(t);
   var all = PROVINCES.concat(["เบตง"]);
   var best = null;
   for (var i = 0; i < all.length; i++) {
-    var p = all[i];
+    var p = all[i], score = null;
     var dist = fuzzyIn(p, t);
-    var allow = Math.floor(p.length * 0.3);
-    if (dist <= allow && (!best || dist / p.length < best.score || (dist / p.length === best.score && p.length > best.name.length))) {
-      best = { name: p, score: dist / p.length };
+    if (dist <= Math.floor(p.length * 0.3)) { score = dist / p.length; }
+    var pSk = thaiSkeleton(p);
+    if (pSk.length >= 4 && tSk.length >= 2) {
+      var dSk = fuzzyIn(pSk, tSk);
+      if (dSk <= Math.floor(pSk.length * 0.4)) {
+        var s2 = dSk / pSk.length + 0.05;
+        if (score === null || s2 < score) { score = s2; }
+      }
+    }
+    if (score !== null && (!best || score < best.score || (score === best.score && p.length > best.name.length))) {
+      best = { name: p, score: score };
     }
   }
   return best;
@@ -2398,12 +2454,25 @@ function findPlateIn(text) {
   var re = /(\d?)\s*([ก-ฮ]{1,3})\s*[-.]?\s*(\d{1,4})(?!\d)/g;
   var m, best = null;
   while ((m = re.exec(t)) !== null) {
+    if (!m[1] && m[2].length < 2) { continue; }   // หมวดอักษรตัวเดียวไม่มีเลขนำหน้า มักเป็นของอื่น (เช่น เบอร์โทรบนกรอบ)
+    if (m[3].charAt(0) === "0") { continue; }        // เลขทะเบียนไม่ขึ้นต้นด้วย 0
     var score = m[3].length + (m[2].length === 2 ? 1 : 0);
     if (!best || score > best.score) { best = { text: m[1] + m[2] + " " + m[3], score: score }; }
   }
   return best ? best.text : "";
 }
 
+// ทำความสะอาดบรรทัดสำหรับหาเลขทะเบียน: เลขไทย->อารบิก, "ไกข"->"1กข", ตัดสระ/วรรณยุกต์/สัญลักษณ์
+function plateClean(line) {
+  return normThai(line)
+    .replace(/[ใไ](?=[ก-ฮ])/g, "1")
+    .replace(/[ะ-ฺเ-๎]/g, "")
+    .replace(/[^0-9ก-ฮ ]/g, " ")
+    .replace(/\s+/g, " ").trim();
+}
+
+// ผล: { plate: "1กน 301", province: "นราธิวาส", full: true/false }
+// full = ได้ทั้งหมวดอักษรและตัวเลข · ถ้าได้ไม่ครบจะคืนส่วนที่อ่านได้ (เช่น "1กน") ให้พิมพ์ต่อ
 function readPlate(text) {
   var lines = normThai(text).split("\n");
   var prov = null, rest = [];
@@ -2414,7 +2483,32 @@ function readPlate(text) {
     if (p && !/\d/.test(lines[i])) { continue; }   // บรรทัดชื่อจังหวัด (ไม่มีตัวเลข) ไม่เอาไปหาเลขทะเบียน
     rest.push(lines[i]);
   }
-  return { plate: findPlateIn(rest.join(" ")), province: prov ? prov.name : "" };
+  var province = prov ? prov.name : "";
+  // 1) บรรทัดเดียวมีครบ เช่น "กข 1234"
+  var one = findPlateIn(rest.join("\n").split("\n").map(plateClean).join("\n"));
+  if (one) { return { plate: one, province: province, full: true }; }
+  // 2) ป้ายรถจักรยานยนต์: บรรทัดหมวดอักษร ("1กข") + บรรทัดตัวเลข ("123") แยกกัน
+  var letters = "", digits = "";
+  for (var j = 0; j < rest.length; j++) {
+    var c = plateClean(rest[j]).replace(/ /g, "");
+    var mL = c.match(/^(\d[ก-ฮ]{1,3}|[ก-ฮ]{2,3})$/);   // หมวดอักษรอย่างน้อย 2 ตัว (หรือเลขนำหน้า)
+    var mD = c.match(/^(\d{1,4})$/);
+    if (mL && !letters) { letters = mL[1]; }
+    else if (mD && letters && !digits) { digits = mD[1]; }
+  }
+  if (letters && digits) { return { plate: letters + " " + digits, province: province, full: true }; }
+  // 3) ได้บางส่วน: ใส่ไว้ก่อนให้พิมพ์ต่อเอง
+  if (!letters) {
+    for (var k = 0; k < rest.length && !letters; k++) {
+      var m2 = plateClean(rest[k]).replace(/ /g, "").match(/^(\d?[ก-ฮ]{2,3})\d*$/);
+      if (m2) { letters = m2[1]; }
+    }
+  }
+  if (!letters) {
+    // ไม่เจอหมวดอักษรเลย: เอาบรรทัดที่เป็นตัวเลขล้วนอย่างเดียวไม่ได้ (ไม่รู้ว่าเป็นเลขอะไร)
+    return { plate: "", province: province, full: false };
+  }
+  return { plate: letters, province: province, full: false };
 }
 
 // ทะเบียน + จังหวัด อยู่ในช่องเดียว เช่น "กข 1234 นราธิวาส"
@@ -2516,28 +2610,113 @@ function loadOcr() {
   return ocrLoading;
 }
 
-// ---------- รูป + กรอบครอบ ----------
+// ---------- รูป + กรอบครอบ + ซูม ----------
 var BASE_MAX = 3200;   // ความละเอียดสูงสุดที่เก็บไว้ใช้ครอบ (พิกเซล)
-var VIEW_MAX = 1200;   // ความละเอียดรูปที่แสดงบนจอ
+var ZOOM_MAX = 10;     // ซูมได้สูงสุดกี่เท่า
 
 function newCanvas(w, h) {
   var c = document.createElement("canvas");
-  c.width = Math.max(1, w); c.height = Math.max(1, h);
+  c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h));
   return c;
+}
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+// ขนาดรูปบนจอตอนไม่ซูม: เต็มความกว้าง แต่สูงไม่เกิน 62% ของจอ
+function fitView(kind) {
+  var st = scan[kind], b = st.base;
+  if (!b) { return; }
+  var stage = $(kind + "Stage");
+  var maxW = Math.max(100, $(kind + "Tools").clientWidth - 2);
+  var maxH = Math.round(window.innerHeight * 0.62);
+  var w = maxW, h = Math.round(maxW * b.height / b.width);
+  if (h > maxH) { h = maxH; w = Math.round(maxH * b.width / b.height); }
+  st.fw = w; st.fh = h;
+  stage.style.width = w + "px";
+  stage.style.height = h + "px";
+  var cv = $(kind + "View"), dpr = Math.min(window.devicePixelRatio || 1, 3);
+  cv.style.width = w + "px";
+  cv.style.height = h + "px";
+  cv.width = Math.round(w * dpr);
+  cv.height = Math.round(h * dpr);
+  renderView(kind, true);
+}
+
+function clampView(st) {
+  st.z = clamp(st.z, 1, ZOOM_MAX);
+  var h = 0.5 / st.z;
+  st.cx = clamp(st.cx, h, 1 - h);
+  st.cy = clamp(st.cy, h, 1 - h);
+}
+function viewOrigin(st) { return { x: st.cx - 0.5 / st.z, y: st.cy - 0.5 / st.z }; }
+
+// วาดส่วนที่มองเห็นจากรูปความละเอียดเต็ม (ซูมแล้วยังคมชัด)
+function renderView(kind, now) {
+  var st = scan[kind];
+  if (!st.base) { return; }
+  function draw() {
+    st.raf = 0;
+    var cv = $(kind + "View"), ctx = cv.getContext("2d"), b = st.base, o = viewOrigin(st);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(b, o.x * b.width, o.y * b.height, b.width / st.z, b.height / st.z, 0, 0, cv.width, cv.height);
+    drawCropBox(kind);
+  }
+  if (now) { draw(); return; }
+  if (!st.raf) { st.raf = requestAnimationFrame(draw); }
+}
+
+function drawCropBox(kind) {
+  var st = scan[kind], r = st.crop, box = $(kind + "Box");
+  box.style.display = r ? "block" : "none";
+  if (!r) { return; }
+  var o = viewOrigin(st);
+  box.style.left = ((r.x - o.x) * st.z * st.fw) + "px";
+  box.style.top = ((r.y - o.y) * st.z * st.fh) + "px";
+  box.style.width = (r.w * st.z * st.fw) + "px";
+  box.style.height = (r.h * st.z * st.fh) + "px";
+}
+
+// ตำแหน่งบนจอ -> ตำแหน่งในรูป (0..1)
+function stagePoint(kind, clientX, clientY) {
+  var stage = $(kind + "Stage"), rc = stage.getBoundingClientRect();
+  return { x: clientX - rc.left - stage.clientLeft, y: clientY - rc.top - stage.clientTop };
+}
+function toImg(kind, clientX, clientY) {
+  var st = scan[kind], sp = stagePoint(kind, clientX, clientY), o = viewOrigin(st);
+  return { x: o.x + sp.x / (st.fw * st.z), y: o.y + sp.y / (st.fh * st.z) };
+}
+
+// ซูมโดยให้จุดในรูป f (0..1) อยู่ที่ตำแหน่งบนจอ sp เหมือนเดิม
+function zoomKeep(kind, z, f, sp) {
+  var st = scan[kind];
+  st.z = clamp(z, 1, ZOOM_MAX);
+  st.cx = f.x - sp.x / (st.fw * st.z) + 0.5 / st.z;
+  st.cy = f.y - sp.y / (st.fh * st.z) + 0.5 / st.z;
+  clampView(st);
+  renderView(kind);
+}
+function zoomTo(kind, z, cx, cy) {
+  var st = scan[kind];
+  if (!st.base) { return; }
+  st.z = z; st.cx = cx; st.cy = cy;
+  clampView(st);
+  renderView(kind);
 }
 
 function setBase(kind, cv) {
-  scan[kind].base = cv;
-  var s = Math.min(1, VIEW_MAX / Math.max(cv.width, cv.height));
-  var v = newCanvas(Math.round(cv.width * s), Math.round(cv.height * s));
-  v.getContext("2d").drawImage(cv, 0, 0, v.width, v.height);
-  $(kind + "Img").src = v.toDataURL("image/jpeg", 0.85);
-  scan[kind].crop = null;   // ยังไม่มีกรอบ รอให้ลากนิ้ววาด
-  drawCropBox(kind);
+  var st = scan[kind];
+  st.base = cv;
+  st.crop = null;   // ยังไม่มีกรอบ รอให้ลากนิ้ววาด
+  st.z = 1; st.cx = 0.5; st.cy = 0.5;
+  st.tilt = 0;
   $(kind + "Tools").style.display = "block";
+  $(kind + "PrevWrap").style.display = "none";
+  fitView(kind);
 }
 
-// เลือกรูป -> แสดงพร้อมกรอบ (ยังไม่อ่าน รอให้ลากกรอบก่อน)
+// เลือกรูป -> แสดงให้วาดกรอบ (ยังไม่อ่าน)
 function onPhoto(kind, file) {
   if (!file) { return; }
   var st = $(kind + "Status");
@@ -2546,12 +2725,12 @@ function onPhoto(kind, file) {
   var im = new Image();
   im.onload = function () {
     var s = Math.min(1, BASE_MAX / Math.max(im.naturalWidth, im.naturalHeight));
-    var cv = newCanvas(Math.round(im.naturalWidth * s), Math.round(im.naturalHeight * s));
+    var cv = newCanvas(im.naturalWidth * s, im.naturalHeight * s);
     cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
     URL.revokeObjectURL(url);
     setBase(kind, cv);
-    st.textContent = "👆 ลากนิ้วบนรูปวาดกรอบให้ครอบ" + (kind === "id" ? "เลข 13 หลัก" : "ป้ายทะเบียน") + " แล้วกด 🔍";
-    loadOcr();   // เตรียมตัวอ่านระหว่างลากกรอบ
+    st.textContent = "👆 ลากนิ้ววาดกรอบให้ครอบ" + (kind === "id" ? "เลข 13 หลัก" : "ป้ายทะเบียน") + " (ใช้ 2 นิ้วซูมได้) แล้วกด 🔍";
+    loadOcr();   // เตรียมตัวอ่านระหว่างวาดกรอบ
   };
   im.onerror = function () { URL.revokeObjectURL(url); st.textContent = "⚠️ เปิดรูปไม่ได้ ลองเลือกรูปใหม่"; };
   im.src = url;
@@ -2569,50 +2748,57 @@ function rotatePhoto(kind) {
   setBase(kind, cv);
 }
 
-function drawCropBox(kind) {
-  var r = scan[kind].crop, box = $(kind + "Box");
-  box.style.display = r ? "block" : "none";
-  if (!r) { return; }
-  box.style.left = (r.x * 100) + "%";
-  box.style.top = (r.y * 100) + "%";
-  box.style.width = (r.w * 100) + "%";
-  box.style.height = (r.h * 100) + "%";
-}
-
-// ลากบนรูป = วาดกรอบใหม่ · ลากในกรอบ = ย้าย · ลากมุม = ย่อ/ขยาย
+// 1 นิ้ว: ลากบนรูป = วาดกรอบ · ลากในกรอบ = ย้าย · ลากมุม = ย่อ/ขยาย
+// 2 นิ้ว: ถ่าง/หุบ = ซูม · เลื่อน 2 นิ้ว = เลื่อนรูป
 function setupCrop(kind) {
   var stage = $(kind + "Stage");
-  var MIN = 0.03;
-  var drag = null;
-  function pos(e) {
-    var rc = $(kind + "Img").getBoundingClientRect();
-    return { x: (e.clientX - rc.left) / rc.width, y: (e.clientY - rc.top) / rc.height };
-  }
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  var pts = {};
+  var drag = null, pinch = null;
+  var MIN = 0.008;
+  function ids() { return Object.keys(pts); }
+  function mid() { var k = ids(), a = pts[k[0]], b = pts[k[1]]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) || 1 }; }
+
   stage.addEventListener("pointerdown", function (e) {
-    if (!scan[kind].base) { return; }
+    var st = scan[kind];
+    if (!st.base) { return; }
     e.preventDefault();
-    var p = pos(e), r = scan[kind].crop;
-    var mode = "new";
+    try { stage.setPointerCapture(e.pointerId); } catch (er) {}
+    pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+    if (ids().length === 2) {
+      if (drag) { st.crop = drag.prev; drag = null; drawCropBox(kind); }   // นิ้วที่ 2 มา = ยกเลิกการวาด แล้วซูมแทน
+      var m = mid();
+      pinch = { d0: m.d, z0: st.z, f0: toImg(kind, m.x, m.y) };
+      return;
+    }
+    if (ids().length > 2 || pinch) { return; }
+    var p = toImg(kind, e.clientX, e.clientY), r = st.crop, mode = "new";
     if (r) {
       // ดูจากตำแหน่งนิ้ว: ใกล้มุม = ย่อ/ขยาย · ในกรอบ = ย้าย · นอกกรอบ = วาดใหม่
       var bx = $(kind + "Box").getBoundingClientRect();
       var px = e.clientX - bx.left, py = e.clientY - bx.top;
       var zx = Math.min(24, bx.width * 0.3), zy = Math.min(24, bx.height * 0.3), tol = 14;
-      var inX = px >= -tol && px <= bx.width + tol, inY = py >= -tol && py <= bx.height + tol;
-      if (inX && inY) {
+      if (px >= -tol && px <= bx.width + tol && py >= -tol && py <= bx.height + tol) {
         var nearL = px < zx, nearR = px > bx.width - zx, nearT = py < zy, nearB = py > bx.height - zy;
         if ((nearL || nearR) && (nearT || nearB)) { mode = (nearT ? "t" : "b") + (nearL ? "l" : "r"); }
         else if (px >= 0 && px <= bx.width && py >= 0 && py <= bx.height) { mode = "move"; }
       }
     }
     drag = { mode: mode, p0: p, prev: r, r0: mode === "new" ? { x: clamp(p.x, 0, 1), y: clamp(p.y, 0, 1), w: 0, h: 0 } : r };
-    try { stage.setPointerCapture(e.pointerId); } catch (er) {}
   });
+
   stage.addEventListener("pointermove", function (e) {
-    if (!drag) { return; }
+    if (!pts[e.pointerId]) { return; }
     e.preventDefault();
-    var p = pos(e), dx = p.x - drag.p0.x, dy = p.y - drag.p0.y, r0 = drag.r0, r;
+    pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+    var st = scan[kind];
+    if (pinch) {
+      if (ids().length < 2) { return; }
+      var m = mid();
+      zoomKeep(kind, pinch.z0 * m.d / pinch.d0, pinch.f0, stagePoint(kind, m.x, m.y));
+      return;
+    }
+    if (!drag) { return; }
+    var p = toImg(kind, e.clientX, e.clientY), dx = p.x - drag.p0.x, dy = p.y - drag.p0.y, r0 = drag.r0, r;
     if (drag.mode === "move") {
       r = { x: clamp(r0.x + dx, 0, 1 - r0.w), y: clamp(r0.y + dy, 0, 1 - r0.h), w: r0.w, h: r0.h };
     } else if (drag.mode === "new") {
@@ -2624,107 +2810,421 @@ function setupCrop(kind) {
       if (drag.mode.charAt(0) === "t") { T = clamp(T + dy, 0, B - MIN); } else { B = clamp(B + dy, T + MIN, 1); }
       r = { x: L, y: T, w: R - L, h: B - T };
     }
-    scan[kind].crop = r;
+    st.crop = r;
     drawCropBox(kind);
   });
-  function end() {
+
+  function end(e) {
+    if (!pts[e.pointerId]) { return; }
+    delete pts[e.pointerId];
+    var st = scan[kind];
+    if (pinch) { if (ids().length === 0) { pinch = null; } return; }
     if (!drag) { return; }
-    var r = scan[kind].crop;
-    if (drag.mode === "new" && (r.w < MIN || r.h < MIN)) { scan[kind].crop = drag.prev; }   // แตะเฉยๆ = ใช้กรอบเดิม (หรือยังไม่มีกรอบ)
+    var r = st.crop, changed = true;
+    // แตะเฉยๆ = ใช้กรอบเดิม (กรอบเล็กมากบนจอ ถือว่าแตะ)
+    if (drag.mode === "new" && (!r || r.w * st.z * st.fw < 12 || r.h * st.z * st.fh < 8)) { st.crop = drag.prev; changed = false; }
     drag = null;
     drawCropBox(kind);
+    if (changed) { cropChanged(kind); }
   }
   stage.addEventListener("pointerup", end);
   stage.addEventListener("pointercancel", end);
+
+  // คอมพิวเตอร์: ลูกกลิ้งเมาส์ = ซูม
+  stage.addEventListener("wheel", function (e) {
+    var st = scan[kind];
+    if (!st.base) { return; }
+    e.preventDefault();
+    zoomKeep(kind, st.z * (e.deltaY < 0 ? 1.25 : 0.8), toImg(kind, e.clientX, e.clientY), stagePoint(kind, e.clientX, e.clientY));
+  }, { passive: false });
+
+  // ปุ่มซูม
+  $(kind + "Zin").onclick = function () {
+    var st = scan[kind], r = st.crop;
+    zoomTo(kind, st.z * 1.6, r ? r.x + r.w / 2 : st.cx, r ? r.y + r.h / 2 : st.cy);
+  };
+  $(kind + "Zout").onclick = function () { var st = scan[kind]; zoomTo(kind, st.z / 1.6, st.cx, st.cy); };
+  $(kind + "Zbox").onclick = function () {
+    var r = scan[kind].crop;
+    if (!r) { $(kind + "Status").textContent = "👆 วาดกรอบก่อน แล้วค่อยกด ซูมที่กรอบ"; return; }
+    zoomTo(kind, Math.min(0.7 / r.w, 0.7 / r.h), r.x + r.w / 2, r.y + r.h / 2);
+  };
+  $(kind + "Zfit").onclick = function () { zoomTo(kind, 1, 0.5, 0.5); };
+  // ลบกรอบ (เวลาซูมแล้วกรอบเดิมเต็มจอ ลากตรงไหนก็กลายเป็นย้ายกรอบ)
+  $(kind + "Znew").onclick = function () {
+    var st = scan[kind];
+    if (!st.base || st.busy) { return; }
+    st.crop = null;
+    drawCropBox(kind);
+    $(kind + "PrevWrap").style.display = "none";
+    $(kind + "Status").textContent = "👆 ลากนิ้วบนรูปวาดกรอบใหม่ แล้วกด 🔍";
+  };
+
+  // ปรับเอียง
+  $(kind + "Tilt").addEventListener("input", function () {
+    scan[kind].tilt = Number(this.value);
+    $(kind + "TiltV").textContent = this.value + "°";
+    schedulePreview(kind);
+  });
+  $(kind + "TiltAuto").onclick = function () { setTilt(kind, autoTilt(kind)); };
 }
 
-// ตัดเฉพาะในกรอบ (หรือทั้งรูป) ขยายให้ตัวอักษรใหญ่พอ เติมขอบขาว ทำเป็นขาวดำและเพิ่มความคมชัด
+// ---------- ตัดภาพในกรอบ + จัดให้ตรง ----------
+// ตัดเฉพาะในกรอบ (หรือทั้งรูป) หมุนแก้เอียง ขยายให้ตัวอักษรใหญ่พอ เติมขอบขาว ทำเป็นขาวดำและเพิ่มความคมชัด
 // mode "adapt" = ทำเป็นขาว-ดำ ตามความสว่างรอบๆ แต่ละจุด (ช่วยกับแสงไม่เท่ากัน)
-function prepCanvas(kind, full, mode) {
+function cropCanvas(kind, full, tilt, longSide, mode) {
   var b = scan[kind].base;
   var r = full ? { x: 0, y: 0, w: 1, h: 1 } : scan[kind].crop;
-  var sx = r.x * b.width, sy = r.y * b.height;
-  var sw = Math.max(1, r.w * b.width), sh = Math.max(1, r.h * b.height);
-  var s = Math.min(full ? 2.5 : 4, (full ? 1600 : 1000) / Math.max(sw, sh));
+  var cw0 = Math.max(1, r.w * b.width), ch0 = Math.max(1, r.h * b.height);
+  var ccx = r.x * b.width + cw0 / 2, ccy = r.y * b.height + ch0 / 2;
+  var s = Math.min(full ? 2.5 : 6, longSide / Math.max(cw0, ch0));
   var pad = full ? 0 : 24;
-  var cw = Math.round(sw * s), ch = Math.round(sh * s);
-  var cv = newCanvas(cw + pad * 2, ch + pad * 2);
+  var W = Math.max(1, Math.round(cw0 * s)), H = Math.max(1, Math.round(ch0 * s));
+  var cv = newCanvas(W + pad * 2, H + pad * 2);
   var ctx = cv.getContext("2d");
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(pad, pad, W, H); ctx.clip();
+  ctx.translate(pad + W / 2, pad + H / 2);
+  if (tilt) { ctx.rotate(-tilt * Math.PI / 180); }   // tilt บวก = หมุนทวนเข็มนาฬิกาเพื่อแก้เอียง
+  ctx.scale(s, s);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(b, sx, sy, sw, sh, pad, pad, cw, ch);
-  var data = ctx.getImageData(0, 0, cv.width, cv.height);
-  var px = data.data, hist = [], i, n = px.length / 4;
-  for (i = 0; i < 256; i++) { hist[i] = 0; }
-  for (i = 0; i < px.length; i += 4) {
-    var g = Math.round(px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114);
-    px[i] = g; hist[g]++;
+  var R = Math.sqrt(cw0 * cw0 + ch0 * ch0) / 2 + 2;   // พื้นที่ที่ต้องใช้เมื่อหมุน
+  var sx = clamp(ccx - R, 0, b.width), sy = clamp(ccy - R, 0, b.height);
+  var ex = clamp(ccx + R, 0, b.width), ey = clamp(ccy + R, 0, b.height);
+  if (ex > sx && ey > sy) { ctx.drawImage(b, sx, sy, ex - sx, ey - sy, sx - ccx, sy - ccy, ex - sx, ey - sy); }
+  ctx.restore();
+  enhance(cv, pad, mode);
+  return cv;
+}
+
+// มาสก์จุดมืดตามความสว่างรอบข้าง (1 = มืดกว่ารอบๆ เช่น เส้นตัวหนังสือ)
+function darkMask(g, W, H, rad, C) {
+  var ii = new Float64Array((W + 1) * (H + 1)), x, y;
+  for (y = 0; y < H; y++) {
+    var rs = 0;
+    for (x = 0; x < W; x++) {
+      rs += g[y * W + x];
+      ii[(y + 1) * (W + 1) + x + 1] = ii[y * (W + 1) + x + 1] + rs;
+    }
   }
+  var out = new Uint8Array(W * H);
+  for (y = 0; y < H; y++) {
+    var y0 = Math.max(0, y - rad), y1 = Math.min(H, y + rad + 1);
+    for (x = 0; x < W; x++) {
+      var x0 = Math.max(0, x - rad), x1 = Math.min(W, x + rad + 1);
+      var mean = (ii[y1 * (W + 1) + x1] - ii[y0 * (W + 1) + x1] - ii[y1 * (W + 1) + x0] + ii[y0 * (W + 1) + x0]) / ((y1 - y0) * (x1 - x0));
+      out[y * W + x] = g[y * W + x] < mean - C ? 1 : 0;
+    }
+  }
+  return out;
+}
+
+function enhance(cv, pad, mode) {
+  var ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+  var data = ctx.getImageData(0, 0, W, H), px = data.data, i, x, y;
+  var g = new Float32Array(W * H), hist = new Float64Array(256), n = 0;
+  for (i = 0; i < W * H; i++) { g[i] = px[i * 4] * 0.299 + px[i * 4 + 1] * 0.587 + px[i * 4 + 2] * 0.114; }
+  for (y = pad; y < H - pad; y++) { for (x = pad; x < W - pad; x++) { hist[Math.round(g[y * W + x])]++; n++; } }
   var lo = 0, hi = 255, acc = 0;
   for (i = 0; i < 256; i++) { acc += hist[i]; if (acc > n * 0.01) { lo = i; break; } }
   acc = 0;
   for (i = 255; i >= 0; i--) { acc += hist[i]; if (acc > n * 0.01) { hi = i; break; } }
   var range = Math.max(1, hi - lo);
-  for (i = 0; i < px.length; i += 4) {
-    var v = Math.max(0, Math.min(255, Math.round((px[i] - lo) * 255 / range)));
-    px[i] = px[i + 1] = px[i + 2] = v;
-  }
+  for (i = 0; i < W * H; i++) { g[i] = clamp((g[i] - lo) * 255 / range, 0, 255); }
   if (mode === "adapt") {
-    var W = cv.width, H = cv.height, x, y;
-    var rad = Math.max(8, Math.round(Math.max(W, H) * 0.04));
-    var ii = new Float64Array((W + 1) * (H + 1));
-    for (y = 0; y < H; y++) {
-      var rs = 0;
-      for (x = 0; x < W; x++) {
-        rs += px[(y * W + x) * 4];
-        ii[(y + 1) * (W + 1) + x + 1] = ii[y * (W + 1) + x + 1] + rs;
-      }
-    }
-    var out = new Uint8Array(W * H);
-    for (y = 0; y < H; y++) {
-      var y0 = Math.max(0, y - rad), y1 = Math.min(H, y + rad + 1);
-      for (x = 0; x < W; x++) {
-        var x0 = Math.max(0, x - rad), x1 = Math.min(W, x + rad + 1);
-        var mean = (ii[y1 * (W + 1) + x1] - ii[y0 * (W + 1) + x1] - ii[y1 * (W + 1) + x0] + ii[y0 * (W + 1) + x0]) / ((y1 - y0) * (x1 - x0));
-        out[y * W + x] = px[(y * W + x) * 4] < mean - 10 ? 0 : 255;
-      }
-    }
-    for (i = 0; i < out.length; i++) { px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = out[i]; }
+    var m = darkMask(g, W, H, Math.max(8, Math.round(Math.max(W, H) * 0.04)), 10);
+    for (i = 0; i < W * H; i++) { g[i] = m[i] ? 0 : 255; }
   }
+  for (i = 0; i < W * H; i++) { px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = g[i]; }
   ctx.putImageData(data, 0, 0);
-  return cv;
 }
 
-// อ่านทีละรอบตาม passes = [[psm, mode], ...] หยุดเมื่อ done(ข้อความ) บอกว่าพอแล้ว
-// ทำทีละงาน (บัตร/ป้าย ไม่อ่านพร้อมกัน จะได้ไม่แย่งกัน)
-var ocrQueue = Promise.resolve();
-function ocrPasses(kind, full, passes, done) {
-  var job = ocrQueue.then(function () {
-    return loadOcr().then(function (w) {
-      scan.cur = kind;
-      var canvases = {};
-      var texts = [];
-      var i = 0;
-      function next() {
-        if (i >= passes.length) { return texts.join("\n"); }
-        var psm = passes[i][0], mode = passes[i][1];
-        i++;
-        if (!canvases[mode]) { canvases[mode] = prepCanvas(kind, full, mode); }
-        return w.setParameters({ tessedit_pageseg_mode: psm })
-          .then(function () { return w.recognize(canvases[mode], {}, { text: true, blocks: false, hocr: false, tsv: false }); })
-          .then(function (r) {
-            texts.push((r && r.data && r.data.text) || "");
-            if (done && done(texts.join("\n"))) { return texts.join("\n"); }
-            return next();
-          });
-      }
-      return next();
+// หามุมเอียงอัตโนมัติจากทิศทางขอบตัวหนังสือ/ขอบป้าย (ผลเป็นองศาที่ต้องหมุนทวนเข็มเพื่อให้ตรง)
+function autoTilt(kind) {
+  var st = scan[kind];
+  if (!st.crop) { return 0; }
+  var cv = cropCanvas(kind, false, 0, 220, "gray");
+  var W = cv.width, H = cv.height, pad = 24;
+  var px = cv.getContext("2d").getImageData(0, 0, W, H).data;
+  var g = new Float32Array(W * H), i, x, y;
+  for (i = 0; i < W * H; i++) { g[i] = px[i * 4]; }
+  var angs = [], mags = [];
+  for (y = pad + 1; y < H - pad - 1; y++) {
+    for (x = pad + 1; x < W - pad - 1; x++) {
+      var gx = (g[y * W + x + 1] - g[y * W + x - 1]) * 2 + g[(y - 1) * W + x + 1] - g[(y - 1) * W + x - 1] + g[(y + 1) * W + x + 1] - g[(y + 1) * W + x - 1];
+      var gy = (g[(y + 1) * W + x] - g[(y - 1) * W + x]) * 2 + g[(y + 1) * W + x - 1] - g[(y - 1) * W + x - 1] + g[(y + 1) * W + x + 1] - g[(y - 1) * W + x + 1];
+      var mg = Math.sqrt(gx * gx + gy * gy);
+      if (mg > 0) { mags.push(mg); angs.push(Math.atan2(gy, gx) * 180 / Math.PI); }
+    }
+  }
+  if (mags.length < 50) { return 0; }
+  var sorted = mags.slice().sort(function (a, b) { return a - b; });
+  var cut = sorted[Math.floor(sorted.length * 0.8)];
+  var hist = new Float64Array(91);
+  for (i = 0; i < mags.length; i++) {
+    if (mags[i] < cut) { continue; }
+    var a = ((angs[i] % 90) + 90) % 90;   // ขอบแนวนอน/แนวตั้งเอียงไปเท่ากัน
+    if (a > 45) { a -= 90; }
+    for (var d = Math.max(-45, Math.floor(a) - 4); d <= Math.min(45, Math.ceil(a) + 4); d++) {
+      hist[d + 45] += mags[i] * Math.exp(-((a - d) * (a - d)) / 4.5);
+    }
+  }
+  var best = 0;
+  for (i = 1; i < 91; i++) { if (hist[i] > hist[best]) { best = i; } }
+  return best - 45;
+}
+
+function setTilt(kind, t) {
+  scan[kind].tilt = t;
+  $(kind + "Tilt").value = t;
+  $(kind + "TiltV").textContent = t + "°";
+  schedulePreview(kind);
+}
+
+function cropChanged(kind) {
+  if (!scan[kind].crop) { return; }
+  $(kind + "PrevWrap").style.display = "block";
+  setTilt(kind, autoTilt(kind));
+}
+
+// ภาพตัวอย่าง = ภาพที่ตัวอ่านจะเห็นจริง
+function schedulePreview(kind) {
+  var st = scan[kind];
+  if (st.prevRaf) { return; }
+  st.prevRaf = requestAnimationFrame(function () {
+    st.prevRaf = 0;
+    if (!st.crop) { return; }
+    var src = cropCanvas(kind, false, st.tilt, 700, "gray");
+    var pv = $(kind + "Prev");
+    var maxW = Math.max(100, $(kind + "PrevWrap").clientWidth - 22), maxH = 180;
+    var s = Math.min(maxW / src.width, maxH / src.height);
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    pv.style.width = Math.round(src.width * s) + "px";
+    pv.style.height = Math.round(src.height * s) + "px";
+    pv.width = Math.round(src.width * s * dpr);
+    pv.height = Math.round(src.height * s * dpr);
+    pv.getContext("2d").drawImage(src, 0, 0, pv.width, pv.height);
+  });
+}
+
+// แบ่งบรรทัดตัวหนังสือในป้าย (ป้ายรถมี 2-3 บรรทัด อ่านทีละบรรทัดแม่นกว่า)
+// นับเฉพาะ "จุดมืดบนพื้นสว่าง" (ตัวหนังสือบนแผ่นป้าย) ไม่นับของรกๆ ที่อยู่บนพื้นมืด
+function findBands(cv, pad) {
+  pad = pad || 0;
+  var CW = cv.width, ctx = cv.getContext("2d");
+  var W = cv.width - pad * 2, H = cv.height - pad * 2, i, x, y;
+  if (W < 10 || H < 10) { return []; }
+  var px = ctx.getImageData(pad, pad, W, H).data;
+  var g = new Float32Array(W * H), hist = new Float64Array(256);
+  for (i = 0; i < W * H; i++) { g[i] = px[i * 4]; hist[Math.round(g[i])]++; }
+  // Otsu: แบ่งสว่าง/มืด
+  var tot = W * H, sumAll = 0, wB = 0, sB = 0, best = -1, T = 128;
+  for (i = 0; i < 256; i++) { sumAll += i * hist[i]; }
+  for (i = 0; i < 256; i++) {
+    wB += hist[i]; if (!wB) { continue; }
+    var wF = tot - wB; if (!wF) { break; }
+    sB += i * hist[i];
+    var d = sB / wB - (sumAll - sB) / wF, v = wB * wF * d * d;
+    if (v > best) { best = v; T = i; }
+  }
+  // ค่าเฉลี่ยรอบจุด (integral image)
+  var rad = Math.max(6, Math.round(H * 0.08)), ii = new Float64Array((W + 1) * (H + 1));
+  for (y = 0; y < H; y++) { var rs = 0; for (x = 0; x < W; x++) { rs += g[y * W + x]; ii[(y + 1) * (W + 1) + x + 1] = ii[y * (W + 1) + x + 1] + rs; } }
+  var text = new Uint8Array(W * H);
+  for (y = 0; y < H; y++) {
+    var y0 = Math.max(0, y - rad), y1 = Math.min(H, y + rad + 1);
+    for (x = 0; x < W; x++) {
+      var x0 = Math.max(0, x - rad), x1 = Math.min(W, x + rad + 1);
+      var mean = (ii[y1 * (W + 1) + x1] - ii[y0 * (W + 1) + x1] - ii[y1 * (W + 1) + x0] + ii[y0 * (W + 1) + x0]) / ((y1 - y0) * (x1 - x0));
+      text[y * W + x] = (g[y * W + x] < mean - 12 && mean > T) ? 1 : 0;
+    }
+  }
+  function smooth(arr, k) {
+    var out = new Float32Array(arr.length), h2 = Math.floor(k / 2);
+    for (var q = 0; q < arr.length; q++) { var s = 0, c = 0; for (var t = Math.max(0, q - h2); t <= Math.min(arr.length - 1, q + h2); t++) { s += arr[t]; c++; } out[q] = s / c; }
+    return out;
+  }
+  function runsOf(arr, thr) {
+    var r = [], st = -1;
+    for (var q = 0; q <= arr.length; q++) { var on = q < arr.length && arr[q] > thr; if (on && st < 0) { st = q; } if (!on && st >= 0) { r.push([st, q]); st = -1; } }
+    return r;
+  }
+  function maxOf(arr, a, b) { var m = 0; for (var q = a; q < b; q++) { if (arr[q] > m) { m = arr[q]; } } return m; }
+  // แนวนอน: หาแถบบรรทัด
+  var cx0 = Math.round(W * 0.06), cx1 = Math.round(W * 0.94), prof = new Float32Array(H);
+  for (y = 0; y < H; y++) { var c = 0; for (x = cx0; x < cx1; x++) { c += text[y * W + x]; } prof[y] = c; }
+  var sm = smooth(prof, Math.max(3, Math.round(H * 0.02)));
+  var mx = maxOf(sm, 0, H);
+  if (mx < 3) { return []; }
+  var minh = H * 0.07;
+  // แยกบรรทัดที่ติดกันตรง "ร่อง" ระหว่างบรรทัด
+  function split(a, b) {
+    if (b - a < 2 * minh) { return [[a, b]]; }
+    var lo = a + Math.floor((b - a) * 0.15), hi = b - Math.floor((b - a) * 0.15), yv = lo;
+    for (var q = lo; q < hi; q++) { if (sm[q] < sm[yv]) { yv = q; } }
+    if (sm[yv] < 0.5 * Math.min(maxOf(sm, a, yv), maxOf(sm, yv, b)) && yv - a >= minh && b - yv >= minh) { return split(a, yv).concat(split(yv, b)); }
+    return [[a, b]];
+  }
+  var bands = [];
+  runsOf(sm, mx * 0.12).forEach(function (r) {
+    split(r[0], r[1]).forEach(function (s2) {
+      var a2 = s2[0], b2 = s2[1], pk = maxOf(sm, a2, b2);
+      while (a2 < b2 && sm[a2] < 0.4 * pk) { a2++; }
+      while (b2 > a2 && sm[b2 - 1] < 0.4 * pk) { b2--; }
+      if (b2 - a2 < minh || b2 - a2 > H * 0.8) { return; }
+      var ink = 0;
+      for (y = a2; y < b2; y++) { ink += prof[y]; }
+      bands.push({ a: a2, b: b2, ink: ink });
     });
+  });
+  bands.sort(function (p1, p2) { return p2.ink - p1.ink; });
+  bands = bands.slice(0, 4).sort(function (p1, p2) { return p1.a - p2.a; });
+  // แนวตั้ง: ตัดเฉพาะช่วงที่มีตัวหนังสือ (ตัดของรกด้านซ้าย/ขวาออก)
+  return bands.map(function (bd) {
+    var bh = bd.b - bd.a, col = new Float32Array(W);
+    for (x = 0; x < W; x++) { var c2 = 0; for (y = bd.a; y < bd.b; y++) { c2 += text[y * W + x]; } col[x] = c2; }
+    var cs = smooth(col, Math.max(3, Math.round(bh * 0.15)));
+    var runs = runsOf(cs, Math.max(1, maxOf(cs, 0, W) * 0.08)), merged = [];
+    runs.forEach(function (r) { var l = merged[merged.length - 1]; if (l && r[0] - l[1] < bh * 0.5) { l[1] = r[1]; } else { merged.push(r.slice()); } });
+    var bestR = [0, W], bestInk = -1;
+    merged.forEach(function (r) { var s3 = 0; for (var q = r[0]; q < r[1]; q++) { s3 += col[q]; } if (s3 > bestInk) { bestInk = s3; bestR = r; } });
+    var xa = Math.max(0, Math.round(bestR[0] - bh * 0.15)), xb = Math.min(W, Math.round(bestR[1] + bh * 0.15));
+    var ya = Math.max(0, Math.round(bd.a - bh * 0.35)), yb = Math.min(H, Math.round(bd.b + bh * 0.2));
+    var sc = 72 / (yb - ya);
+    var out = newCanvas((xb - xa) * sc + 32, 72 + 32), octx = out.getContext("2d");
+    octx.fillStyle = "#fff";
+    octx.fillRect(0, 0, out.width, out.height);
+    octx.imageSmoothingQuality = "high";
+    octx.drawImage(cv, pad + xa, pad + ya, xb - xa, yb - ya, 16, 16, (xb - xa) * sc, 72);
+    return out;
+  });
+}
+
+// ภาพแบบต่างๆ ของบรรทัดเดียวกัน (ตัวอ่านให้ผลไม่เหมือนกัน เลยอ่านหลายแบบแล้วโหวต)
+function grayOf(src) {
+  var W = src.width, H = src.height, px = src.getContext("2d").getImageData(0, 0, W, H).data, g = new Float32Array(W * H);
+  for (var i = 0; i < W * H; i++) { g[i] = px[i * 4]; }
+  return g;
+}
+function cvFromGray(g, W, H) {
+  var out = newCanvas(W, H), ctx = out.getContext("2d"), d = ctx.createImageData(W, H);
+  for (var i = 0; i < W * H; i++) { var v = g[i]; d.data[i * 4] = d.data[i * 4 + 1] = d.data[i * 4 + 2] = v; d.data[i * 4 + 3] = 255; }
+  ctx.putImageData(d, 0, 0);
+  return out;
+}
+function boxBlur(g, W, H) {
+  var o = new Float32Array(W * H), x, y;
+  for (y = 0; y < H; y++) {
+    for (x = 0; x < W; x++) {
+      var s2 = 0, c = 0;
+      for (var dy = -1; dy <= 1; dy++) { for (var dx = -1; dx <= 1; dx++) { var yy = y + dy, xx = x + dx; if (yy >= 0 && yy < H && xx >= 0 && xx < W) { s2 += g[yy * W + xx]; c++; } } }
+      o[y * W + x] = s2 / c;
+    }
+  }
+  return o;
+}
+// เบลอเบาๆ + เพิ่มความคมชัด (ลบเกล็ดวิบวับในเส้นตัวอักษร)
+function blurCv(src) {
+  var W = src.width, H = src.height, g = boxBlur(boxBlur(grayOf(src), W, H), W, H), lo = 255, hi = 0, i;
+  var sorted = Array.prototype.slice.call(g).sort(function (a, b) { return a - b; });
+  lo = sorted[Math.floor(sorted.length * 0.01)]; hi = sorted[Math.floor(sorted.length * 0.99)];
+  var range = Math.max(1, hi - lo);
+  for (i = 0; i < W * H; i++) { g[i] = clamp((g[i] - lo) * 255 / range, 0, 255); }
+  return cvFromGray(g, W, H);
+}
+// ขาว-ดำตามความสว่างรอบข้าง (ไม่ทำให้ขอบกรอบป้ายกลายเป็นแถบดำทึบ)
+function adaptCv(src) {
+  var W = src.width, H = src.height, g = boxBlur(grayOf(src), W, H);
+  var m = darkMask(g, W, H, Math.max(6, Math.round(H * 0.2)), 12);
+  for (var i = 0; i < W * H; i++) { g[i] = m[i] ? 0 : 255; }
+  return cvFromGray(g, W, H);
+}
+
+// นับคะแนน: list = [[ค่า, น้ำหนัก], ...] -> เรียงค่าจากคะแนนมากไปน้อย
+function vote(list) {
+  var score = {}, order = [];
+  list.forEach(function (it) {
+    if (!it[0]) { return; }
+    if (!(it[0] in score)) { score[it[0]] = 0; order.push(it[0]); }
+    score[it[0]] += it[1];
+  });
+  return order.sort(function (a, b) { return score[b] - score[a]; });
+}
+
+// ประกอบผลจากบรรทัดต่างๆ (เรียงบนลงล่าง) rows = [{texts:[...], w:[น้ำหนัก...]}, ...]
+// ป้ายรถยนต์: หมวด+เลขบรรทัดเดียว · ป้ายรถจักรยานยนต์: หมวด -> จังหวัด -> เลข (เลขต้องอยู่ใต้หมวด กันไปเอาเบอร์โทรบนกรอบ)
+function assemblePlate(rows) {
+  var province = null, provIdx = -1, i, k;
+  for (i = 0; i < rows.length; i++) {
+    for (k = 0; k < rows[i].texts.length; k++) {
+      var t = rows[i].texts[k], pv = t ? findProvinceIn(t) : null;
+      if (pv && !/\d/.test(t) && (!province || pv.score < province.score)) { province = pv; provIdx = i; }
+    }
+  }
+  var pname = province ? province.name : "";
+  var fulls = [];
+  for (i = 0; i < rows.length; i++) {
+    if (i === provIdx) { continue; }
+    for (k = 0; k < rows[i].texts.length; k++) {
+      var one = rows[i].texts[k] ? findPlateIn(plateClean(rows[i].texts[k])) : "";
+      if (one) { fulls.push([one, rows[i].w[k]]); }
+    }
+  }
+  var fv = vote(fulls);
+  if (fv.length) { return { plate: fv[0], province: pname, full: true, alts: fv.slice(1, 4) }; }
+  var li = -1, lv = [];
+  for (i = 0; i < rows.length && li < 0; i++) {
+    if (i === provIdx) { continue; }
+    var ls = [];
+    for (k = 0; k < rows[i].texts.length; k++) {
+      var mL = rows[i].texts[k] ? plateClean(rows[i].texts[k]).replace(/ /g, "").match(/(\d?)([ก-ฮ]{2,3})/) : null;
+      if (mL) { ls.push([mL[1] + mL[2], rows[i].w[k]]); }
+    }
+    if (ls.length) { li = i; lv = vote(ls); }
+  }
+  if (li < 0) { return { plate: "", province: pname, full: false, alts: [] }; }
+  var dv = [];
+  for (i = li + 1; i < rows.length && !dv.length; i++) {
+    if (i === provIdx) { continue; }
+    var ds = [];
+    for (k = 0; k < rows[i].texts.length; k++) {
+      var c = rows[i].texts[k] ? plateClean(rows[i].texts[k]).replace(/ /g, "") : "";
+      if (/^[1-9]\d{0,3}$/.test(c)) { ds.push([c, rows[i].w[k]]); }   // 1-4 หลัก ไม่ขึ้นต้นด้วย 0
+    }
+    dv = vote(ds);
+  }
+  if (!dv.length) { return { plate: lv[0], province: pname, full: false, alts: lv.slice(1, 3) }; }
+  var combos = [];
+  lv.slice(0, 2).forEach(function (L) { dv.slice(0, 3).forEach(function (D) { combos.push(L + " " + D); }); });
+  return { plate: combos[0], province: pname, full: true, alts: combos.slice(1, 5) };
+}
+
+// ---------- อ่าน ----------
+// งานอ่านทำทีละงาน (บัตร/ป้าย ไม่อ่านพร้อมกัน จะได้ไม่แย่งกัน)
+var ocrQueue = Promise.resolve();
+function withOcr(kind, fn) {
+  var job = ocrQueue.then(function () {
+    return loadOcr().then(function (w) { scan.cur = kind; return fn(w); });
   });
   ocrQueue = job.catch(function () {});
   return job;
+}
+function readCv(w, cv, psm, whitelist) {
+  return w.setParameters({ tessedit_pageseg_mode: psm, tessedit_char_whitelist: whitelist || "" })
+    .then(function () { return w.recognize(cv, {}, { text: true, blocks: false, hocr: false, tsv: false }); })
+    .then(function (r) { return (r && r.data && r.data.text) || ""; });
+}
+// ทำทีละขั้นจนกว่า done() บอกว่าพอ
+function runSteps(steps, done) {
+  var i = 0;
+  function next() {
+    if (i >= steps.length) { return Promise.resolve(); }
+    return steps[i++]().then(function () { return done() ? null : next(); });
+  }
+  return next();
 }
 
 // สถานะกำลังอ่าน: ปิดปุ่มระหว่างอ่าน และจับเวลา
@@ -2751,10 +3251,18 @@ function scanId(full) {
   var st = $("idStatus");
   $("idAlts").innerHTML = "";
   setBusy("id", true, full ? "กำลังอ่านทั้งรูป..." : "กำลังอ่านเลขในกรอบ...");
-  var passes = full ? [["6", "gray"], ["11", "gray"], ["6", "adapt"]]
-                    : [["6", "gray"], ["7", "gray"], ["6", "adapt"], ["11", "gray"]];
-  ocrPasses("id", full, passes, function (t) { return findIdInText(t).valid.length > 0; })
-    .then(function (text) {
+  var tilt = full ? 0 : scan.id.tilt;
+  var text = "";
+  var found = function () { return findIdInText(text).valid.length > 0; };
+  withOcr("id", function (w) {
+    var cvs = {};
+    function cvOf(mode) { return cvs[mode] || (cvs[mode] = full ? cropCanvas("id", true, 0, 1600, mode) : cropCanvas("id", false, tilt, 1000, mode)); }
+    function step(psm, mode, wl) { return function () { return readCv(w, mode === "blur" ? blurCv(cvOf("gray")) : cvOf(mode), psm, wl).then(function (t) { text += "\n" + t; }); }; }
+    var steps = full ? [step("6", "gray"), step("11", "gray"), step("6", "adapt")]
+                     : [step("7", "gray"), step("7", "blur", "0123456789 -"), step("6", "gray"), step("7", "adapt"), step("11", "gray")];
+    return runSteps(steps, found);
+  })
+    .then(function () {
       var sec = setBusy("id", false);
       var res = findIdInText(text);
       if (res.valid.length) {
@@ -2773,10 +3281,10 @@ function scanId(full) {
         }
       } else if (res.fallback) {
         $("idNum").value = idFormat(res.fallback);
-        st.textContent = "อ่านได้ 13 หลัก แต่ไม่ผ่านสูตรตรวจ — แก้ตัวเลขที่ผิดในช่อง หรือลากกรอบใหม่แล้วอ่านอีกครั้ง";
+        st.textContent = "อ่านได้ 13 หลัก แต่ไม่ผ่านสูตรตรวจ — ดู \"ภาพที่จะอ่าน\" ให้ตรงและชัด แล้วอ่านอีกครั้ง หรือแก้ตัวเลขในช่อง";
       } else {
-        st.textContent = full ? "ไม่พบเลขบัตร — ลากกรอบครอบเฉพาะเลข 13 หลักแล้วกด 🔍 หรือ ↻ หมุนรูป"
-                              : "ไม่พบเลขในกรอบ — ลากกรอบให้ครอบเลข 13 หลักพอดีขึ้น หรือ ↻ หมุนรูป หรือพิมพ์เอง";
+        st.textContent = full ? "ไม่พบเลขบัตร — วาดกรอบครอบเฉพาะเลข 13 หลักแล้วกด 🔍"
+                              : "ไม่พบเลขในกรอบ — ซูมแล้ววาดกรอบให้พอดีเลข ดู \"ภาพที่จะอ่าน\" ให้ตัวเลขตรง (ปรับเอียงได้) หรือพิมพ์เอง";
       }
       drawIdCheck();
       update();
@@ -2784,31 +3292,94 @@ function scanId(full) {
     .catch(function () { setBusy("id", false); st.textContent = "⚠️ โหลดตัวอ่านไม่สำเร็จ — เช็กอินเทอร์เน็ตแล้วลองใหม่ (หรือพิมพ์เลขเอง)"; });
 }
 
+// ผลอื่นที่ตัวอ่านเห็น: แตะเพื่อใช้แทน (ตัวอ่านอาจสับสน 5/6, 0/9 ฯลฯ)
+function drawPlateAlts(alts, province) {
+  var box = $("plAlts");
+  box.innerHTML = "";
+  if (!alts || !alts.length) { return; }
+  var lab = document.createElement("span");
+  lab.className = "hint";
+  lab.style.margin = "0";
+  lab.textContent = "ไม่ตรง? แตะเลือกที่ตรงกับป้าย:";
+  box.appendChild(lab);
+  alts.forEach(function (a) {
+    var b = document.createElement("button");
+    b.className = "btn";
+    b.textContent = a;
+    b.onclick = function () { $("plNum").value = (a + " " + (province || "")).trim(); box.innerHTML = ""; drawPlateCheck(); update(); };
+    box.appendChild(b);
+  });
+}
+
 function scanPlate(full) {
   if (!scan.pl.base || scan.pl.busy || needCrop("pl", full)) { return; }
+  $("plAlts").innerHTML = "";
   var st = $("plStatus");
   setBusy("pl", true, full ? "กำลังอ่านทั้งรูป..." : "กำลังอ่านป้ายในกรอบ...");
-  var passes = full ? [["11", "gray"], ["6", "gray"], ["6", "adapt"], ["11", "adapt"]]
-                    : [["6", "gray"], ["11", "gray"], ["6", "adapt"], ["11", "adapt"]];
-  ocrPasses("pl", full, passes, function (t) {
-    var r = readPlate(t);
-    return !!(r.plate && r.province);   // ได้ทั้งเลขและจังหวัดแล้ว ไม่ต้องอ่านรอบต่อไป
+  var tilt = full ? 0 : scan.pl.tilt;
+  var got = { plate: "", province: "", full: false, alts: [] };
+  // เก็บผลจากขั้นแรกๆ ไว้ก่อน (อ่านทีละบรรทัดแม่นที่สุด) ขั้นหลังเติมเฉพาะส่วนที่ยังขาด
+  // ผลที่ได้ครบ (หมวด+เลข) ใช้แทนผลที่ได้บางส่วนได้
+  function take(text) {
+    var r = readPlate(text);
+    if (r.full && / \d$/.test(r.plate)) { r.plate = ""; }   // อ่านทั้งกรอบแล้วได้เลขตัวเดียว มักเป็นขยะ ไม่เอา
+    if (r.plate && (!got.plate || (r.full && !got.full))) { got.plate = r.plate; got.full = r.full; got.alts = []; }
+    if (!got.province && r.province) { got.province = r.province; }
+  }
+  var done = function () { return !!(got.full && got.province); };
+  withOcr("pl", function (w) {
+    var cvs = {};
+    function cvOf(mode) { return cvs[mode] || (cvs[mode] = full ? cropCanvas("pl", true, 0, 1600, mode) : cropCanvas("pl", false, tilt, 560, mode)); }
+    function block(psm, mode) { return function () { return readCv(w, cvOf(mode), psm).then(take); }; }
+    function lines(mode) {
+      return function () {
+        var bands = findBands(cvOf(mode), full ? 0 : 24), rows = [];
+        var chain = Promise.resolve();
+        bands.forEach(function (bc) {
+          chain = chain.then(function () {
+            return readCv(w, bc, "7").then(function (t0) {
+              t0 = t0.replace(/\n/g, " ");
+              var cl = plateClean(t0).replace(/ /g, "");
+              if (findProvinceIn(t0) && !/\d/.test(cl)) { rows.push({ texts: [t0], w: [1] }); return; }   // บรรทัดจังหวัด อ่านครั้งเดียวพอ
+              var digitsLine = (cl.match(/\d/g) || []).length >= 2 && (cl.match(/[ก-ฮ]/g) || []).length <= 1;
+              var D = "0123456789", b1 = blurCv(bc), a1 = adaptCv(bc);
+              var jobs = digitsLine ? [[bc, D, 1.1], [b1, D, 1.2], [a1, D, 1.15]] : [[b1, "", 1.1], [a1, "", 1.0]];
+              var row = { texts: [t0], w: [digitsLine ? 1.0 : 1.2] }, c2 = Promise.resolve();
+              jobs.forEach(function (jb) {
+                c2 = c2.then(function () { return readCv(w, jb[0], "7", jb[1]).then(function (t) { row.texts.push(t.replace(/\n/g, " ")); row.w.push(jb[2]); }); });
+              });
+              return c2.then(function () { rows.push(row); });
+            });
+          });
+        });
+        return chain.then(function () {
+          var r = assemblePlate(rows);
+          if (r.plate && (!got.plate || (r.full && !got.full))) { got.plate = r.plate; got.full = r.full; got.alts = r.alts || []; }
+          if (!got.province && r.province) { got.province = r.province; }
+        });
+      };
+    }
+    var steps = full ? [block("11", "gray"), block("6", "gray"), block("6", "adapt"), block("11", "adapt")]
+                     : [lines("gray"), block("6", "gray"), block("11", "gray")];
+    return runSteps(steps, done);
   })
-    .then(function (text) {
+    .then(function () {
       var sec = setBusy("pl", false);
-      var res = readPlate(text);
-      if (res.plate || res.province) {
-        $("plNum").value = (res.plate + " " + res.province).trim();   // เช่น "กข 1234 นราธิวาส"
+      if (got.plate || got.province) {
+        $("plNum").value = (got.plate + " " + got.province).trim();   // เช่น "กข 1234 นราธิวาส"
       }
-      if (res.plate && res.province) {
+      drawPlateAlts(got.alts, got.province);
+      if (got.plate && !got.full) {
+        st.textContent = "อ่านได้บางส่วน: " + got.plate + " (" + sec + " วินาที) — พิมพ์เลขทะเบียนต่อในช่อง หรือซูมวาดกรอบให้พอดีป้ายแล้วอ่านใหม่";
+      } else if (got.plate && got.province) {
         st.textContent = "อ่านป้ายได้ ✓ (" + sec + " วินาที) ตรวจกับป้ายอีกครั้ง";
-      } else if (res.plate) {
-        st.textContent = "อ่านเลขทะเบียนได้ แต่ไม่เจอชื่อจังหวัด — ลากกรอบให้รวมชื่อจังหวัด หรือพิมพ์ต่อท้ายในช่อง";
-      } else if (res.province) {
-        st.textContent = "เจอชื่อจังหวัด แต่อ่านเลขทะเบียนไม่ได้ — ลากกรอบให้พอดีป้ายแล้วอ่านใหม่ หรือพิมพ์เอง";
+      } else if (got.plate) {
+        st.textContent = "อ่านเลขทะเบียนได้ แต่ไม่เจอชื่อจังหวัด — วาดกรอบให้รวมชื่อจังหวัด หรือพิมพ์ต่อท้ายในช่อง";
+      } else if (got.province) {
+        st.textContent = "เจอชื่อจังหวัด แต่อ่านเลขทะเบียนไม่ได้ — ซูมแล้ววาดกรอบให้พอดีป้าย ปรับเอียงให้ตรง หรือพิมพ์เอง";
       } else {
-        st.textContent = full ? "อ่านป้ายไม่ได้ — ลากกรอบครอบเฉพาะป้ายแล้วกด 🔍 หรือ ↻ หมุนรูป"
-                              : "อ่านป้ายในกรอบไม่ได้ — ลากกรอบให้พอดีป้าย หรือ ↻ หมุนรูป หรือพิมพ์เอง";
+        st.textContent = full ? "อ่านป้ายไม่ได้ — วาดกรอบครอบเฉพาะป้ายแล้วกด 🔍"
+                              : "อ่านป้ายในกรอบไม่ได้ — ซูมแล้ววาดกรอบให้พอดีป้าย ดู \"ภาพที่จะอ่าน\" ให้ตัวหนังสือตรง (ปรับเอียงได้) หรือพิมพ์เอง";
       }
       drawPlateCheck();
       update();
@@ -2826,20 +3397,22 @@ $("idRot").onclick = function () { rotatePhoto("id"); };
 $("plRot").onclick = function () { rotatePhoto("pl"); };
 setupCrop("id");
 setupCrop("pl");
+window.addEventListener("resize", function () { fitView("id"); fitView("pl"); });
 $("idNum").addEventListener("input", function () { $("idAlts").innerHTML = ""; drawIdCheck(); update(); });
-$("plNum").addEventListener("input", function () { drawPlateCheck(); update(); });
+$("plNum").addEventListener("input", function () { $("plAlts").innerHTML = ""; drawPlateCheck(); update(); });
 
 function clearScan() {
   ["id", "pl"].forEach(function (k) {
-    scan[k] = { base: null, crop: null, busy: false };
-    $(k + "Img").removeAttribute("src");
+    scan[k] = { base: null, crop: null, busy: false, z: 1, cx: 0.5, cy: 0.5, tilt: 0 };
     $(k + "Tools").style.display = "none";
+    $(k + "PrevWrap").style.display = "none";
     $(k + "Status").textContent = "";
     ["Go", "All", "Rot"].forEach(function (b) { $(k + b).disabled = false; });
   });
   $("idNum").value = "";
   $("idAlts").innerHTML = "";
   $("plNum").value = "";
+  $("plAlts").innerHTML = "";
   drawIdCheck();
   drawPlateCheck();
   update();
@@ -3512,7 +4085,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "7 ต.ค. 69 · รุ่นที่ 37";
+var APP_VERSION = "10 ต.ค. 69 · รุ่นที่ 39";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
