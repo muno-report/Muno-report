@@ -62,7 +62,14 @@ input[type=date]{display:block;min-width:0;max-width:100%;-webkit-appearance:non
 .g .btn{padding:12px 0;text-align:center}
 
 /* ว.4 */
-#lst{max-height:300px;overflow-y:auto;margin-top:8px;border:1px solid var(--line);border-radius:12px}
+#lst{max-height:min(55vh,420px);overflow-y:auto;margin-top:8px;border:1px solid var(--line);border-radius:12px}
+#lst b.hl{color:var(--gold)}
+.qRow{display:flex;gap:6px}
+.qRow input{flex:1;min-width:0}
+#q::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;display:none}
+.qClear{flex:none;padding:0 14px}
+.v4cats{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.v4cats .btn{flex:none;padding:7px 12px;font-size:14px;white-space:nowrap}
 .it{display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;align-items:flex-start}
 .it:last-child{border-bottom:0}
 .it input{margin-top:5px;width:18px;height:18px;flex:none;accent-color:var(--gold)}
@@ -381,7 +388,11 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <!-- ===== ว.4 ===== -->
 <div class="c">
   <div class="l">ว.4 <i>เลือกได้ 1 รายการ · ค้นหาหรือสร้างเองได้</i></div>
-  <input type="search" id="q" placeholder="พิมพ์ค้นหา เช่น ATM, อบต., ว.43">
+  <div class="qRow">
+    <input type="search" id="q" placeholder="ค้นหา เช่น ว43 ปาดังยอ, อนามัย, ตลาด" autocomplete="off">
+    <button class="btn qClear" id="qClear" aria-label="ล้างคำค้นหา" style="display:none">✕</button>
+  </div>
+  <div class="v4cats" id="v4cats"></div>
   <button class="btn" id="addV" style="margin-top:8px;width:100%">＋ สร้างรายการใหม่</button>
 
   <!-- ฟอร์มสร้างรายการ ว.4 ใหม่ (ซ่อนไว้ กดปุ่มด้านบนเพื่อเปิด) -->
@@ -400,6 +411,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     </div>
   </div>
   <p class="hint" id="v4status"></p>
+  <p class="hint" id="v4count" style="margin:2px 0 0"></p>
   <div id="lst"></div>
   <button class="btn small" id="restoreV" style="display:none;margin-top:8px;width:100%">คืนรายการเดิมที่ลบไป</button>
 </div>
@@ -809,7 +821,16 @@ var V4_LIST = [
   { text: "ว.43 (pop up) เส้นทางสายรอง บ้านบูเก๊ะ", desc: D1 },
   { text: "ว.43 (pop up) เส้นทางสายรองบาโงปาโฮะ", desc: D1 },
   { text: "ว.43 (pop up) เส้นทางสายรองปูโป๊ะ", desc: D1 },
-  { text: "ลว.เส้นทางสายหลัก รปภ.ครู ตากใบ-สุไหงโกลก", desc: D2 }
+  { text: "ลว.เส้นทางสายหลัก รปภ.ครู ตากใบ-สุไหงโกลก", desc: D2 },
+  { text: "ลว.เส้นทางสายหลักหน้ามัสยิด อารอห์มาน", desc: D2 },
+  { text: "ตรวจสถานที่ราชการ ชลประทาน", desc: D2 },
+  { text: "ว.43 (pop up) เส้นทางสายรองหน้ามัสยิด ปาดังยอ", desc: D1 },
+  { text: "ตรวจท่าข้ามริมคลอง บ้านปาดังยอ", desc: D2 },
+  { text: "ว.43 (pop up) เส้นทางสายรองในตลาดมูโนะ", desc: D1 },
+  { text: "ตรวจร้านค้า ในตลาดมูโนะ", desc: D2 },
+  { text: "ว.43 (pop up) เส้นทางสายรอง หน้าโรงเรียนบ้านมูโนะ", desc: D1 },
+  { text: "ว.43 (pop up) เส้นทางสายรอง อาโละเปาะโต", desc: D1 },
+  { text: "ตรวจสถานที่ราชการ โรงเรียนบ้านมูโนะ", desc: D2 }
 ];
 
 // ================== สถานะของหน้า ==================
@@ -1195,23 +1216,147 @@ function drawPatrol() {
 
 // ================== ว.4 ==================
 
+// ---------- ค้นหา ว.4 ----------
+// - ไม่สนช่องว่าง จุด วงเล็บ ขีด (พิมพ์ "ว43" เจอ "ว.43", "มัสยิดปาดังยอ" เจอ "หน้ามัสยิด ปาดังยอ")
+// - หลายคำ = ต้องเจอทุกคำ ไม่ต้องเรียงลำดับ
+// - คำที่เกี่ยวข้องกัน (รพสต = อนามัย = โรงพยาบาลส่งเสริมสุขภาพ ฯลฯ)
+// - พิมพ์ผิดสระ/วรรณยุกต์นิดหน่อยก็ยังเจอ
+// - เรียงผลที่ตรงที่สุดไว้บน
+var V4_SYNONYMS = [
+  ["ว43", "จุดตรวจ", "ด่าน", "ตั้งด่าน"],
+  ["popup", "ป๊อปอัพ", "ป็อปอัพ", "ป๊อบอัพ", "ป๊อปอัป", "ชั่วคราว"],
+  ["ลว", "ลาดตระเวน", "สายตรวจ"],
+  ["รพสต", "อนามัย", "โรงพยาบาลส่งเสริมสุขภาพ", "สถานีอนามัย", "โรงพยาบาล", "รพ"],
+  ["อบต", "องค์การบริหารส่วนตำบล"],
+  ["รร", "โรงเรียน"],
+  ["มัสยิด", "สุเหร่า", "บาลาเซาะ"],
+  ["ตลาด", "ตลาดนัด"],
+  ["ร้านค้า", "ร้าน"],
+  ["atm", "เอทีเอ็ม", "ตู้เงิน", "ธนาคาร"],
+  ["ท่าข้าม", "ท่าเรือ", "ริมคลอง", "คลอง", "แม่น้ำ"],
+  ["สนามกีฬา", "สนามฟุตบอล", "สนาม"],
+  ["โซลาร์", "โซล่า", "โซลาเซลล์", "โรงไฟฟ้า"],
+  ["สถานที่ราชการ", "ราชการ", "หน่วยงาน"],
+  ["สายหลัก", "ถนนสายหลัก", "ถนนใหญ่"],
+  ["สายรอง", "ถนนสายรอง", "ซอย"],
+  ["โกลก", "สุไหงโกลก"],
+  ["ตรวจเยี่ยม", "เยี่ยม"]
+];
+
+function v4Norm(s) {
+  return normThai(String(s || "")).toLowerCase().replace(/[\s.\-()（）,/]/g, "");
+}
+var V4_SYN_N = V4_SYNONYMS.map(function (g) { return g.map(v4Norm); });
+
+// คะแนนความตรงของรายการกับคำค้นหา (0 = ไม่ตรง)
+function v4Score(text, query) {
+  var t = v4Norm(text), tSk = thaiSkeleton(t), total = 0;
+  var words = String(query).trim().split(/\s+/).filter(Boolean);
+  for (var i = 0; i < words.length; i++) {
+    var w = v4Norm(words[i]);
+    if (!w) { continue; }
+    var cands = [[w, 10]];
+    V4_SYN_N.forEach(function (g) {
+      if (g.some(function (x) { return x === w || (w.length >= 2 && x.indexOf(w) === 0); })) {
+        g.forEach(function (x) { if (x !== w) { cands.push([x, 7]); } });
+      }
+    });
+    var best = 0;
+    cands.forEach(function (c) {
+      var x = c[0], sc = 0;
+      if (t.indexOf(x) >= 0) { sc = c[1]; }
+      else if (thaiSkeleton(x).length >= 3 && tSk.indexOf(thaiSkeleton(x)) >= 0) { sc = c[1] - 4; }       // สระ/วรรณยุกต์ต่าง (คำสั้นเกินไปไม่ใช้ กันเจอผิด)
+      else if (x.length >= 4 && fuzzyIn(x, t) <= Math.floor(x.length * 0.25)) { sc = c[1] - 6; }          // พิมพ์ผิดเล็กน้อย
+      if (sc > best) { best = sc; }
+    });
+    if (!best) { return 0; }   // ทุกคำต้องเจอ
+    total += best;
+  }
+  var qn = v4Norm(query);
+  if (qn && t.indexOf(qn) >= 0) { total += 5; }
+  if (qn && t.indexOf(qn) === 0) { total += 3; }
+  return total;
+}
+
+// หมวดสำหรับปุ่มกรองเร็ว
+var V4_CATS = [
+  { id: "all", label: "ทั้งหมด" },
+  { id: "fav", label: "⭐ ใช้บ่อย" },
+  { id: "v43", label: "ว.43 / จุดตรวจ", test: function (t) { return /^ว\.?\s*43/.test(t); } },
+  { id: "gov", label: "สถานที่ราชการ", test: function (t) { return /ราชการ|อบต|กศน|ชลประทาน|อนามัย|รพสต|โรงเรียน|โรงพยาบาล|สนามกีฬา/.test(t) && !/^ว\.?\s*43/.test(t); } },
+  { id: "shop", label: "ร้านค้า / ตลาด", test: function (t) { return /ร้าน|ตลาด|ATM/i.test(t) && !/^ว\.?\s*43/.test(t); } },
+  { id: "patrol", label: "ลว. / แสดงกำลัง", test: function (t) { return /^ลว|แสดงกำลัง|ตรวจเยี่ยม/.test(t); } },
+  { id: "other", label: "อื่นๆ" }
+];
+var v4Cat = "all";
+
+function v4CatOf(text) {
+  for (var i = 2; i < V4_CATS.length - 1; i++) { if (V4_CATS[i].test(text)) { return V4_CATS[i].id; } }
+  return "other";
+}
+
+// จำว่าใช้รายการไหนบ่อย (เฉพาะเครื่องนี้)
+var v4Use = {};
+try { v4Use = JSON.parse(localStorage.getItem("v4use") || "{}") || {}; } catch (e) { v4Use = {}; }
+function v4Used(text) {
+  v4Use[text] = (v4Use[text] || 0) + 1;
+  try { localStorage.setItem("v4use", JSON.stringify(v4Use)); } catch (e) {}
+}
+
+function drawV4Cats() {
+  var box = $("v4cats");
+  box.innerHTML = "";
+  V4_CATS.forEach(function (c) {
+    var b = document.createElement("button");
+    b.className = "btn" + (v4Cat === c.id ? " on" : "");
+    b.textContent = c.label;
+    b.onclick = function () { v4Cat = c.id; drawV4Cats(); drawV4(); };
+    box.appendChild(b);
+  });
+}
+
+// ไฮไลต์คำที่ตรง (เฉพาะที่เจอตรงตัว)
+function v4Highlight(text, query) {
+  var html = escapeHtml(text);
+  String(query).trim().split(/\s+/).filter(function (w) { return w.length >= 2; }).forEach(function (w) {
+    var ew = escapeHtml(w).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    try { html = html.replace(new RegExp("(" + ew + ")", "gi"), '<b class="hl">$1</b>'); } catch (e) {}
+  });
+  return html;
+}
+
 function drawV4() {
-  var q = $("q").value.trim().toLowerCase();
-  var html = "";
+  var q = $("q").value.trim();
+  $("qClear").style.display = q ? "block" : "none";
+  var rows = [];
   for (var k = 0; k < V4_LIST.length; k++) {
-    if (q && V4_LIST[k].text.toLowerCase().indexOf(q) < 0) { continue; }
-    var checked = v4Chosen.indexOf(k) >= 0 ? " checked" : "";
-    html += '<label class="it"><input type="checkbox" data-k="' + k + '"' + checked + '><div class="txt">'
-          + escapeHtml(V4_LIST[k].text)
-          + (V4_LIST[k].desc ? "<small>" + escapeHtml(V4_LIST[k].desc) + "</small>" : "")
+    var text = V4_LIST[k].text;
+    if (v4Cat === "fav" && !v4Use[text]) { continue; }
+    if (v4Cat !== "all" && v4Cat !== "fav" && v4CatOf(text) !== v4Cat) { continue; }
+    var sc = q ? v4Score(text, q) : 0;
+    if (q && !sc) { continue; }
+    rows.push({ k: k, sc: sc, use: v4Use[text] || 0 });
+  }
+  if (q) { rows.sort(function (a, b) { return b.sc - a.sc || a.k - b.k; }); }
+  else if (v4Cat === "fav") { rows.sort(function (a, b) { return b.use - a.use || a.k - b.k; }); }
+  var html = "";
+  rows.forEach(function (r) {
+    var it = V4_LIST[r.k];
+    var checked = v4Chosen.indexOf(r.k) >= 0 ? " checked" : "";
+    html += '<label class="it"><input type="checkbox" data-k="' + r.k + '"' + checked + '><div class="txt">'
+          + (q ? v4Highlight(it.text, q) : escapeHtml(it.text))
+          + (it.desc ? "<small>" + escapeHtml(it.desc) + "</small>" : "")
           + "</div>";
     // ลบได้เฉพาะรายการที่สร้างขึ้นใหม่ (รายการเดิมที่มากับไฟล์ลบไม่ได้)
-    if (V4_LIST[k].custom) {
-      html += '<button class="btn del" data-del="' + k + '">ลบ</button>';
+    if (it.custom) {
+      html += '<button class="btn del" data-del="' + r.k + '">ลบ</button>';
     }
     html += "</label>";
-  }
-  $("lst").innerHTML = html || '<div class="it">ไม่พบรายการ — กด ＋ สร้างรายการใหม่ ด้านบน</div>';
+  });
+  var empty = v4Cat === "fav" && !q ? "ยังไม่มีรายการที่ใช้บ่อย — เลือกรายการไปสักพักจะขึ้นที่นี่"
+                                     : "ไม่พบรายการ — ลองพิมพ์สั้นลง เปลี่ยนหมวด หรือกด ＋ สร้างรายการใหม่";
+  $("lst").innerHTML = html || '<div class="it">' + empty + "</div>";
+  $("v4count").textContent = (q || v4Cat !== "all") ? "พบ " + rows.length + " รายการ" + (q ? " (เรียงจากตรงที่สุด)" : "") : "ทั้งหมด " + rows.length + " รายการ";
   $("restoreV").style.display = hiddenCount > 0 ? "block" : "none";
   $("restoreV").textContent = "คืนรายการเดิมที่ลบไป (" + hiddenCount + ")";
 }
@@ -1334,6 +1479,7 @@ $("lst").addEventListener("change", function (e) {
   var k = Number(e.target.getAttribute("data-k"));
   if (e.target.checked) {
     v4Chosen = [k];
+    if (V4_LIST[k]) { v4Used(V4_LIST[k].text); }
   } else {
     v4Chosen = [];
   }
@@ -1390,6 +1536,8 @@ $("restoreV").onclick = function () {
 };
 
 $("q").addEventListener("input", drawV4);
+$("qClear").onclick = function () { $("q").value = ""; drawV4(); $("q").focus(); };
+drawV4Cats();
 
 // ---------- ฟอร์มสร้างรายการใหม่ ----------
 $("addV").onclick = function () {
@@ -4183,7 +4331,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "10 ต.ค. 69 · รุ่นที่ 42";
+var APP_VERSION = "11 ต.ค. 69 · รุ่นที่ 43";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
