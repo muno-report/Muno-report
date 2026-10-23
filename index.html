@@ -1591,18 +1591,19 @@ var NAME_INDENT = "     ";
 
 // ย่อหน้าบรรทัดตำแหน่ง (บรรทัดใต้ ยศ ชื่อ สกุล) — ลึกกว่าบรรทัดชื่ออีกเท่านี้
 // อยากให้ลึกขึ้น/ตื้นลง เพิ่มหรือลดช่องว่างในเครื่องหมายคำพูดได้
-var POS_INDENT = "     ";
+var POS_INDENT = "";
 
 // แยกเป็น 2 บรรทัด: "ยศชื่อ สกุล" / ตำแหน่ง (นามเรียกขาน) ย่อหน้าลึกกว่า
 // ถ้าไม่มีตำแหน่ง (มีแค่ ยศชื่อ สกุล) จะเป็นบรรทัดเดียวเหมือนเดิม
-function nameLines(indent, person, sign) {
+function nameLines(indent, person, sign, posIndent) {
+  if (posIndent === undefined) { posIndent = POS_INDENT; }
   var tail = sign ? " (" + sign + ")" : "";
   var words = String(person.name).trim().split(/\s+/);
   // กรณีพิมพ์ยศแยกกับชื่อ เช่น "พ.ต.อ. สมชาย ใจดี ..." ให้นับยศรวมกับชื่อ
   if (words.length > 1 && /\.$/.test(words[0])) { words.splice(0, 2, words[0] + " " + words[1]); }
   if (words.length <= 2) { return [indent + words.join(" ") + tail]; }
   return [indent + words[0] + " " + words[1],
-          indent + POS_INDENT + words.slice(2).join(" ") + tail];
+          indent + posIndent + words.slice(2).join(" ") + tail];
 }
 
 // ใส่รายชื่อลงในข้อความ (ไม่มีเลขลำดับ)
@@ -1610,7 +1611,7 @@ function addNameLines(lines, list) {
   if (list.length === 0) { lines.push("…"); return; }
   for (var i = 0; i < list.length; i++) {
     var person = findPerson(list[i].id);
-    Array.prototype.push.apply(lines, nameLines(NAME_INDENT, person, list[i].sign));
+    Array.prototype.push.apply(lines, nameLines(NAME_INDENT, person, list[i].sign, ""));
   }
 }
 
