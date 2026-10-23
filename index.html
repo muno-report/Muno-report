@@ -1589,7 +1589,7 @@ $("saveNew").onclick = function () {
 // อยากให้ลึกขึ้น/ตื้นลง เพิ่มหรือลดช่องว่างในเครื่องหมายคำพูดได้
 var NAME_INDENT = "     ";
 
-// ย่อหน้าบรรทัดตำแหน่ง (บรรทัดใต้ ยศ ชื่อ สกุล) — ลึกกว่าบรรทัดชื่ออีกเท่านี้
+// ย่อหน้าบรรทัดตำแหน่ง (บรรทัดใต้ ยศ ชื่อ สกุล) — ใส่ช่องว่างนี้นำหน้าบรรทัดตำแหน่ง ("" = ชิดซ้ายสุด)
 // อยากให้ลึกขึ้น/ตื้นลง เพิ่มหรือลดช่องว่างในเครื่องหมายคำพูดได้
 var POS_INDENT = "";
 
@@ -1603,7 +1603,7 @@ function nameLines(indent, person, sign, posIndent) {
   if (words.length > 1 && /\.$/.test(words[0])) { words.splice(0, 2, words[0] + " " + words[1]); }
   if (words.length <= 2) { return [indent + words.join(" ") + tail]; }
   return [indent + words[0] + " " + words[1],
-          indent + posIndent + words.slice(2).join(" ") + tail];
+          posIndent + words.slice(2).join(" ") + tail];
 }
 
 // ใส่รายชื่อลงในข้อความ (ไม่มีเลขลำดับ)
