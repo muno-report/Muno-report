@@ -284,10 +284,6 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     </details>
 
 
-    <details><summary>ประวัติการส่ง</summary>
-      <p>เปิดการ์ด <b>ประวัติการส่ง</b> → ดูข้อความ → <b>ใช้ซ้ำ</b> (ใส่ข้อมูลเดิม + เวลาปัจจุบัน), ส่งอีกครั้ง, คัดลอก</p>
-    </details>
-
 
 
     <details><summary>แอปบนหน้าจอโฮม</summary>
@@ -730,16 +726,6 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <div id="t"></div>
 
 <p class="hint" id="mode" style="display:none"></p>
-
-<!-- ===== ประวัติการส่ง (พับได้) ===== -->
-<div class="c fold" id="fold_hist">
-  <div class="foldTop">
-    <button class="foldH" data-fold="hist"><span>ประวัติการส่ง <i id="histCount"></i></span><span class="arr">▼</span></button>
-  </div>
-  <div class="foldB">
-    <div id="hist"></div>
-  </div>
-</div>
 
 <p class="ver" id="ver"></p>
 </div>
@@ -1805,100 +1791,6 @@ function histSummary(text) {
   return parts.join(" · ");
 }
 
-function drawHistory() {
-  var box = $("hist");
-  box.innerHTML = "";
-  $("histCount").textContent = "(" + hist.length + " รายการ)";
-  if (hist.length === 0) {
-    box.innerHTML = '<p class="hint" style="margin:0">ยังไม่มีประวัติ</p>';
-    return;
-  }
-
-  for (var i = 0; i < hist.length; i++) {
-    var card = document.createElement("details");
-    card.className = "hc";
-
-    // หัวการ์ด: วันเวลา + สรุป (กดเพื่อดูข้อความเต็ม)
-    var sum = document.createElement("summary");
-    var t1 = document.createElement("div");
-    t1.className = "hw";
-    t1.textContent = hist[i].ts;
-    sum.appendChild(t1);
-    var t2 = document.createElement("div");
-    t2.className = "hs";
-    t2.textContent = histSummary(hist[i].t) || "กดเพื่อดูข้อความ";
-    sum.appendChild(t2);
-    card.appendChild(sum);
-
-    // ข้อความเต็ม
-    var pre = document.createElement("pre");
-    pre.textContent = hist[i].t;
-    card.appendChild(pre);
-
-    // ปุ่ม
-    var btns = document.createElement("div");
-    btns.className = "hb";
-
-    var again = document.createElement("button");
-    again.className = "btn small on";
-    again.textContent = "ส่งอีกครั้ง";
-    again.setAttribute("data-i", i);
-    again.onclick = function () {
-      var h = hist[Number(this.getAttribute("data-i"))];
-      if (!confirmSend(h.t)) { return; }
-      sendByPicker(h.t);
-    };
-    btns.appendChild(again);
-
-    // ใช้ซ้ำ: ใส่ข้อมูลเดิมกลับเข้าฟอร์ม + วันเวลาปัจจุบัน
-    if (hist[i].state) {
-      var reuse = document.createElement("button");
-      reuse.className = "btn small";
-      reuse.textContent = "ใช้ซ้ำ";
-      reuse.setAttribute("data-i", i);
-      reuse.onclick = function () {
-        var h = hist[Number(this.getAttribute("data-i"))];
-        var page = h.page || 1;
-        showPage(page);
-        applyPageState(page, h.state);
-        setNowForPage(true);
-        window.scrollTo(0, 0);
-        toast("ใส่ข้อมูลเดิมแล้ว ✓ วันเวลาเป็นปัจจุบัน ตรวจแล้วกดส่งได้เลย");
-      };
-      btns.appendChild(reuse);
-    }
-
-    var copy = document.createElement("button");
-    copy.className = "btn small";
-    copy.textContent = "คัดลอก";
-    copy.setAttribute("data-i", i);
-    copy.onclick = function () {
-      var text = hist[Number(this.getAttribute("data-i"))].t;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(text)
-          .then(function () { toast("คัดลอกแล้ว ✓"); })
-          .catch(function () { toast("คัดลอกไม่ได้ กดค้างที่ข้อความแล้วเลือกคัดลอก"); });
-      }
-    };
-    btns.appendChild(copy);
-
-    var del = document.createElement("button");
-    del.className = "btn small";
-    del.textContent = "ลบ";
-    del.setAttribute("data-i", i);
-    del.onclick = function () {
-      if (!confirm("ลบประวัตินี้?")) { return; }
-      hist.splice(Number(this.getAttribute("data-i")), 1);
-      try { localStorage.setItem("hist", JSON.stringify(hist)); } catch (e) {}
-      drawHistory();
-    };
-    btns.appendChild(del);
-
-    card.appendChild(btns);
-    box.appendChild(card);
-  }
-}
-
 // เช็กว่ากรอกครบไหม (ครบ = true)
 function checkForm1() {
   if (chosen.a.length === 0) { toast("กรุณาเลือกรายชื่อ ภายใต้อำนวยการของ"); return false; }
@@ -1907,18 +1799,8 @@ function checkForm1() {
   return true;
 }
 
-// บันทึกข้อความลงประวัติ
-function saveHistory(text, state, page, stamp) {
-  hist.unshift({
-    t: text,
-    ts: stamp || histStamp(),
-    page: page || currentPage,
-    state: state || null   // ค่าที่เลือกในฟอร์ม สำหรับปุ่ม "ใช้ซ้ำ"
-  });
-  hist = hist.slice(0, HIST_MAX);
-  try { localStorage.setItem("hist", JSON.stringify(hist)); } catch (e) {}
-  drawHistory();
-}
+// ไม่เก็บประวัติการส่งแล้ว (เอาหัวข้อประวัติออก)
+function saveHistory() {}
 
 // ถามยืนยันก่อนส่ง พร้อมให้ดูข้อความ
 function confirmSend(text) {
@@ -3815,7 +3697,7 @@ function showPage(n) {
   $("finishRow").style.display = (n >= 5) ? "none" : "flex";   // หน้าอินทรี03 / สแกน ซ่อนตัวเลือกจบการรายงาน
   $("fold_preset").style.display = (n === 6) ? "none" : "";    // หน้าสแกนไม่มีชุดสำเร็จรูป
   // หน้าสแกน: ไม่มีข้อความที่จะส่ง ปุ่มส่ง ปุ่มคัดลอก และประวัติการส่ง
-  ["oLabel", "o", "pick", "cp", "fold_hist"].forEach(function (id) {
+  ["oLabel", "o", "pick", "cp"].forEach(function (id) {
     $(id).style.display = (n === 6) ? "none" : "";
   });
   $("tab6").classList.toggle("on", n === 6);
@@ -4327,7 +4209,7 @@ function refreshDateFmtLabels() {
 
 // ================== พับ/เปิดการ์ด ==================
 // จำไว้ว่าการ์ดไหนเปิดอยู่ (ค่าเริ่มต้น: พับทั้งหมด)
-var FOLD_IDS = { preset: "fold_preset", hist: "fold_hist" };
+var FOLD_IDS = { preset: "fold_preset" };
 var foldState = {};
 try { foldState = JSON.parse(localStorage.getItem("folds") || "{}"); } catch (e) {}
 
@@ -4348,7 +4230,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "7 พ.ย. 69 · รุ่นที่ 45";
+var APP_VERSION = "7 พ.ย. 69 · รุ่นที่ 47";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
@@ -4358,7 +4240,7 @@ drawGroups("b");
 drawChosen("b");
 drawPatrol();
 drawV4();
-drawHistory();
+try { localStorage.removeItem("hist"); } catch (e) {}   // ล้างประวัติเก่าที่เคยจำไว้
 setNow();
 startLiff();
 loadShared();
