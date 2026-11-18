@@ -206,7 +206,7 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 .copyRow input{flex:1;min-width:0}
 .copyBtn{flex:none;padding:8px 12px;font-size:15px;white-space:nowrap}
 .copyBtn.done{background:var(--ok)!important;border-color:var(--ok)!important;color:#fff!important}
-/* หน้า 6: แถบผลลัพธ์ลอยบน + แถบปุ่มลอยล่าง (ไม่ต้องเลื่อนขึ้นลง) */
+/* หน้า 6: แถบผลลัพธ์ลอยบน + แถบปุ่มอยู่เหนือรูป (ไม่ลอยทับรูป) */
 .scanTop{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;margin-bottom:10px;box-shadow:0 4px 14px rgba(0,0,0,.35);max-height:40vh;overflow-y:auto}
 .rrow{display:flex;gap:6px;align-items:stretch}
 .scanTop .bigIn{font-size:18px!important;letter-spacing:.5px;padding:8px 6px;flex:1;min-width:0}
@@ -218,13 +218,13 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 .scanTop .alts{margin:0 0 8px}
 .scanTop > :last-child{margin-bottom:0}
 .hint.tight{margin:0 0 4px;font-size:13px}
-.actBar{position:sticky;bottom:0;z-index:15;background:var(--card);margin:10px -16px -16px;padding:8px 16px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);border-radius:0 0 18px 18px;box-shadow:0 -6px 14px rgba(0,0,0,.3)}
-.actBar .hint{margin:0 0 6px;font-size:13px}
+.actBar{margin:8px 0 6px;padding:0}
+.actBar .hint{margin:0 0 6px;font-size:13px;min-height:0}
 .actBar .hint:empty{display:none}
 .actRow{display:flex;gap:6px}
 .actRow .btn{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:11px 4px;font-size:14px;white-space:nowrap;margin:0}
 .actRow .goBtn{flex:1.7;font-weight:700}
-#idTools[style*="none"] ~ .actBar .needPhoto,#plTools[style*="none"] ~ .actBar .needPhoto{display:none}
+.actBar:has(~ div[id$="Tools"][style*="none"]) .needPhoto{display:none}
 .zoomBar{grid-template-columns:repeat(5,1fr)!important}
 .zoomBar .btn{padding:8px 0!important;font-size:12px!important;white-space:nowrap}
 .prevWrap{display:flex;gap:10px;align-items:center}
@@ -672,6 +672,15 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 
 <div class="c" id="cardId">
   <div class="l" style="margin-top:0;font-size:18px">🪪 เลขบัตรประชาชน <i>ถ่ายด้านหน้าให้ชัด ไม่มีแสงสะท้อน</i></div>
+  <div class="actBar">
+    <p class="hint" id="idStatus"></p>
+    <div class="actRow">
+      <label class="btn on">📷 ถ่ายรูป<input type="file" accept="image/*" id="idFile" hidden></label>
+      <button class="btn on needPhoto goBtn" id="idGo">🔍 อ่านเลข</button>
+      <button class="btn needPhoto" id="idRot">↻ หมุน</button>
+      <button class="btn needPhoto" id="idAll">ทั้งรูป</button>
+    </div>
+  </div>
   <div id="idTools" style="display:none">
     <div class="cropStage" id="idStage">
       <canvas id="idView" class="cropView"></canvas>
@@ -699,19 +708,19 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     </div>
   </div>
   <details class="rawBox" id="idRawBox" style="display:none"><summary>ดูข้อความที่ตัวอ่านเห็น</summary><pre id="idRaw"></pre></details>
-  <div class="actBar">
-    <p class="hint" id="idStatus"></p>
-    <div class="actRow">
-      <label class="btn on">📷 ถ่ายรูป<input type="file" accept="image/*" id="idFile" hidden></label>
-      <button class="btn on needPhoto goBtn" id="idGo">🔍 อ่านเลข</button>
-      <button class="btn needPhoto" id="idRot">↻ หมุน</button>
-      <button class="btn needPhoto" id="idAll">ทั้งรูป</button>
-    </div>
-  </div>
 </div>
 
 <div class="c" id="cardPl" style="display:none">
   <div class="l" style="margin-top:0;font-size:18px">🚗 ป้ายทะเบียนรถ <i>ถ่ายป้ายให้ตรง ชัด เห็นชื่อจังหวัด</i></div>
+  <div class="actBar">
+    <p class="hint" id="plStatus"></p>
+    <div class="actRow">
+      <label class="btn on">📷 ถ่ายรูป<input type="file" accept="image/*" id="plFile" hidden></label>
+      <button class="btn on needPhoto goBtn" id="plGo">🔍 อ่านป้าย</button>
+      <button class="btn needPhoto" id="plRot">↻ หมุน</button>
+      <button class="btn needPhoto" id="plAll">ทั้งรูป</button>
+    </div>
+  </div>
   <div id="plTools" style="display:none">
     <div class="cropStage" id="plStage">
       <canvas id="plView" class="cropView"></canvas>
@@ -739,15 +748,6 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
     </div>
   </div>
   <details class="rawBox" id="plRawBox" style="display:none"><summary>ดูข้อความที่ตัวอ่านเห็น</summary><pre id="plRaw"></pre></details>
-  <div class="actBar">
-    <p class="hint" id="plStatus"></p>
-    <div class="actRow">
-      <label class="btn on">📷 ถ่ายรูป<input type="file" accept="image/*" id="plFile" hidden></label>
-      <button class="btn on needPhoto goBtn" id="plGo">🔍 อ่านป้าย</button>
-      <button class="btn needPhoto" id="plRot">↻ หมุน</button>
-      <button class="btn needPhoto" id="plAll">ทั้งรูป</button>
-    </div>
-  </div>
 </div>
 
 
@@ -4282,7 +4282,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "18 พ.ย. 69 · รุ่นที่ 48";
+var APP_VERSION = "18 พ.ย. 69 · รุ่นที่ 49";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
