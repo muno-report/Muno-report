@@ -206,6 +206,31 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 .copyRow input{flex:1;min-width:0}
 .copyBtn{flex:none;padding:8px 12px;font-size:15px;white-space:nowrap}
 .copyBtn.done{background:var(--ok)!important;border-color:var(--ok)!important;color:#fff!important}
+/* หน้า 6: แถบผลลัพธ์ลอยบน + แถบปุ่มลอยล่าง (ไม่ต้องเลื่อนขึ้นลง) */
+.scanTop{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;margin-bottom:10px;box-shadow:0 4px 14px rgba(0,0,0,.35);max-height:40vh;overflow-y:auto}
+.rrow{display:flex;gap:6px;align-items:stretch}
+.scanTop .bigIn{font-size:18px!important;letter-spacing:.5px;padding:8px 6px;flex:1;min-width:0}
+.scanTop .copyBtn{padding:8px 10px;font-size:14px}
+.rchip{flex:none;width:46px;border:1px solid var(--line);background:transparent;border-radius:10px;font-size:22px;padding:0;cursor:pointer;color:inherit}
+.rchip.on{background:var(--gold);border-color:var(--gold)}
+.scanTop .chk{margin:2px 2px 8px;font-size:13px}
+.scanTop .rrow ~ .chk ~ .alts:empty{display:none}
+.scanTop .alts{margin:0 0 8px}
+.scanTop > :last-child{margin-bottom:0}
+.hint.tight{margin:0 0 4px;font-size:13px}
+.actBar{position:sticky;bottom:0;z-index:15;background:var(--card);margin:10px -16px -16px;padding:8px 16px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);border-radius:0 0 18px 18px;box-shadow:0 -6px 14px rgba(0,0,0,.3)}
+.actBar .hint{margin:0 0 6px;font-size:13px}
+.actBar .hint:empty{display:none}
+.actRow{display:flex;gap:6px}
+.actRow .btn{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:11px 4px;font-size:14px;white-space:nowrap;margin:0}
+.actRow .goBtn{flex:1.7;font-weight:700}
+#idTools[style*="none"] ~ .actBar .needPhoto,#plTools[style*="none"] ~ .actBar .needPhoto{display:none}
+.zoomBar{grid-template-columns:repeat(5,1fr)!important}
+.zoomBar .btn{padding:8px 0!important;font-size:12px!important;white-space:nowrap}
+.prevWrap{display:flex;gap:10px;align-items:center}
+.prevWrap .prevCv{margin:0;max-height:90px;flex:none}
+.tiltCol{flex:1;min-width:0}
+.tiltCol .btn{margin-top:6px;width:100%}
 </style>
 </head>
 <body>
@@ -627,10 +652,26 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
 <label class="closeOpt" id="cloudBox" style="display:none;padding:4px"><input type="checkbox" id="cloudOn" checked> ใช้ Google ช่วยอ่าน (แม่นกว่า · ต้องมีเน็ต)</label>
 <p class="hint" id="privNote" style="margin:0 4px 10px"></p>
 
-<div class="c">
-  <div class="l" style="margin-top:0;font-size:18px">🪪 เลขบัตรประชาชน</div>
-  <p class="hint" style="margin-top:0">ถ่ายด้านหน้าบัตรให้ชัด ไม่มีแสงสะท้อน</p>
-  <label class="btn on scanBtn">📷 ถ่ายรูป / เลือกรูปบัตร<input type="file" accept="image/*" id="idFile" hidden></label>
+<!-- แถบผลลัพธ์ ลอยค้างด้านบน: เห็นเลขบัตร/ทะเบียนตลอด กดไอคอนเพื่อสลับบัตร/ป้าย -->
+<div class="scanTop" id="scanTop">
+  <div class="rrow">
+    <button type="button" class="rchip on" id="chipId" aria-label="สแกนบัตรประชาชน">🪪</button>
+    <input type="text" id="idNum" class="bigIn" inputmode="numeric" autocomplete="off" placeholder="เลขบัตร x-xxxx-xxxxx-xx-x" aria-label="เลขบัตร 13 หลัก">
+    <button class="btn copyBtn" id="idCopy">📋 คัดลอก</button>
+  </div>
+  <div class="chk mu" id="idChk">ยังไม่มีเลขบัตร</div>
+  <div class="alts" id="idAlts"></div>
+  <div class="rrow">
+    <button type="button" class="rchip" id="chipPl" aria-label="สแกนป้ายทะเบียนรถ">🚗</button>
+    <input type="text" id="plNum" class="bigIn" autocomplete="off" placeholder="ทะเบียน + จังหวัด" aria-label="ทะเบียนรถและจังหวัด">
+    <button class="btn copyBtn" id="plCopy">📋 คัดลอก</button>
+  </div>
+  <div class="chk mu" id="plChk">ยังไม่มีทะเบียนรถ</div>
+  <div class="alts" id="plAlts"></div>
+</div>
+
+<div class="c" id="cardId">
+  <div class="l" style="margin-top:0;font-size:18px">🪪 เลขบัตรประชาชน <i>ถ่ายด้านหน้าให้ชัด ไม่มีแสงสะท้อน</i></div>
   <div id="idTools" style="display:none">
     <div class="cropStage" id="idStage">
       <canvas id="idView" class="cropView"></canvas>
@@ -641,40 +682,36 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
       <button class="btn" id="idZout">－ ซูม</button>
       <button class="btn" id="idZfit">ทั้งรูป</button>
       <button class="btn" id="idZbox">ซูมที่กรอบ</button>
-      <button class="btn wide" id="idZnew">✏️ ลบกรอบ วาดใหม่</button>
+      <button class="btn" id="idZnew">✏️ วาดใหม่</button>
     </div>
-    <p class="hint">ลากนิ้วบนรูปวาดกรอบให้ครอบ <b>เลข 13 หลัก</b> พอดีๆ · <b>ใช้ 2 นิ้วถ่าง/หุบ</b>เพื่อซูมและเลื่อนรูป · ลากในกรอบเพื่อย้าย · ลากมุมเพื่อย่อ/ขยาย</p>
+    <p class="hint tight">ลากนิ้ววาดกรอบครอบ <b>เลข 13 หลัก</b> · <b>2 นิ้ว</b> = ซูม/เลื่อนรูป · ลากมุมเพื่อย่อ/ขยาย</p>
     <div class="prevWrap" id="idPrevWrap" style="display:none">
-      <div class="lb2">ภาพที่จะอ่าน <i>ตัวหนังสือควรตรง ชัด เต็มกรอบ</i></div>
       <canvas id="idPrev" class="prevCv"></canvas>
-      <div class="tiltRow">
-        <span>ปรับเอียง</span>
-        <input type="range" id="idTilt" min="-45" max="45" step="1" value="0" aria-label="ปรับเอียง">
-        <b id="idTiltV">0°</b>
+      <div class="tiltCol">
+        <div class="lb2" style="margin:0 0 4px">ภาพที่จะอ่าน</div>
+        <div class="tiltRow">
+          <span>เอียง</span>
+          <input type="range" id="idTilt" min="-45" max="45" step="1" value="0" aria-label="ปรับเอียง">
+          <b id="idTiltV">0°</b>
+        </div>
         <button class="btn small" id="idTiltAuto">อัตโนมัติ</button>
       </div>
     </div>
-    <button class="btn on scanBtn" id="idGo">🔍 อ่านเลขในกรอบ</button>
-    <div class="scanTools">
-      <button class="btn" id="idRot">↻ หมุนรูป 90°</button>
-      <button class="btn" id="idAll">อ่านทั้งรูป (ช้ากว่า)</button>
+  </div>
+  <details class="rawBox" id="idRawBox" style="display:none"><summary>ดูข้อความที่ตัวอ่านเห็น</summary><pre id="idRaw"></pre></details>
+  <div class="actBar">
+    <p class="hint" id="idStatus"></p>
+    <div class="actRow">
+      <label class="btn on">📷 ถ่ายรูป<input type="file" accept="image/*" id="idFile" hidden></label>
+      <button class="btn on needPhoto goBtn" id="idGo">🔍 อ่านเลข</button>
+      <button class="btn needPhoto" id="idRot">↻ หมุน</button>
+      <button class="btn needPhoto" id="idAll">ทั้งรูป</button>
     </div>
   </div>
-  <p class="hint" id="idStatus"></p>
-  <details class="rawBox" id="idRawBox" style="display:none"><summary>ดูข้อความที่ตัวอ่านเห็น</summary><pre id="idRaw"></pre></details>
-  <div class="lb2">เลขบัตร 13 หลัก <i>แก้หรือพิมพ์เองได้</i></div>
-  <div class="copyRow">
-    <input type="text" id="idNum" class="bigIn" inputmode="numeric" autocomplete="off" placeholder="x-xxxx-xxxxx-xx-x">
-    <button class="btn copyBtn" id="idCopy">📋 คัดลอก</button>
-  </div>
-  <div class="chk mu" id="idChk">ยังไม่มีเลขบัตร</div>
-  <div class="alts" id="idAlts"></div>
 </div>
 
-<div class="c">
-  <div class="l" style="margin-top:0;font-size:18px">🚗 ป้ายทะเบียนรถ</div>
-  <p class="hint" style="margin-top:0">ถ่ายป้ายให้ตรง ชัด เห็นชื่อจังหวัด</p>
-  <label class="btn on scanBtn">📷 ถ่ายรูป / เลือกรูปป้าย<input type="file" accept="image/*" id="plFile" hidden></label>
+<div class="c" id="cardPl" style="display:none">
+  <div class="l" style="margin-top:0;font-size:18px">🚗 ป้ายทะเบียนรถ <i>ถ่ายป้ายให้ตรง ชัด เห็นชื่อจังหวัด</i></div>
   <div id="plTools" style="display:none">
     <div class="cropStage" id="plStage">
       <canvas id="plView" class="cropView"></canvas>
@@ -685,34 +722,32 @@ input[type=datetime-local]{width:100%;background:var(--field);color:var(--tx);bo
       <button class="btn" id="plZout">－ ซูม</button>
       <button class="btn" id="plZfit">ทั้งรูป</button>
       <button class="btn" id="plZbox">ซูมที่กรอบ</button>
-      <button class="btn wide" id="plZnew">✏️ ลบกรอบ วาดใหม่</button>
+      <button class="btn" id="plZnew">✏️ วาดใหม่</button>
     </div>
-    <p class="hint">ลากนิ้วบนรูปวาดกรอบให้ครอบ <b>ป้ายทะเบียนทั้งป้าย</b> (รวมชื่อจังหวัด) · <b>ใช้ 2 นิ้วถ่าง/หุบ</b>เพื่อซูมและเลื่อนรูป · ลากในกรอบเพื่อย้าย · ลากมุมเพื่อย่อ/ขยาย</p>
+    <p class="hint tight">ลากนิ้ววาดกรอบครอบ <b>ป้ายทั้งป้าย</b> (รวมจังหวัด) · <b>2 นิ้ว</b> = ซูม/เลื่อนรูป · ลากมุมเพื่อย่อ/ขยาย</p>
     <div class="prevWrap" id="plPrevWrap" style="display:none">
-      <div class="lb2">ภาพที่จะอ่าน <i>ตัวหนังสือควรตรง ชัด เต็มกรอบ</i></div>
       <canvas id="plPrev" class="prevCv"></canvas>
-      <div class="tiltRow">
-        <span>ปรับเอียง</span>
-        <input type="range" id="plTilt" min="-45" max="45" step="1" value="0" aria-label="ปรับเอียง">
-        <b id="plTiltV">0°</b>
+      <div class="tiltCol">
+        <div class="lb2" style="margin:0 0 4px">ภาพที่จะอ่าน</div>
+        <div class="tiltRow">
+          <span>เอียง</span>
+          <input type="range" id="plTilt" min="-45" max="45" step="1" value="0" aria-label="ปรับเอียง">
+          <b id="plTiltV">0°</b>
+        </div>
         <button class="btn small" id="plTiltAuto">อัตโนมัติ</button>
       </div>
     </div>
-    <button class="btn on scanBtn" id="plGo">🔍 อ่านป้ายในกรอบ</button>
-    <div class="scanTools">
-      <button class="btn" id="plRot">↻ หมุนรูป 90°</button>
-      <button class="btn" id="plAll">อ่านทั้งรูป (ช้ากว่า)</button>
+  </div>
+  <details class="rawBox" id="plRawBox" style="display:none"><summary>ดูข้อความที่ตัวอ่านเห็น</summary><pre id="plRaw"></pre></details>
+  <div class="actBar">
+    <p class="hint" id="plStatus"></p>
+    <div class="actRow">
+      <label class="btn on">📷 ถ่ายรูป<input type="file" accept="image/*" id="plFile" hidden></label>
+      <button class="btn on needPhoto goBtn" id="plGo">🔍 อ่านป้าย</button>
+      <button class="btn needPhoto" id="plRot">↻ หมุน</button>
+      <button class="btn needPhoto" id="plAll">ทั้งรูป</button>
     </div>
   </div>
-  <p class="hint" id="plStatus"></p>
-  <details class="rawBox" id="plRawBox" style="display:none"><summary>ดูข้อความที่ตัวอ่านเห็น</summary><pre id="plRaw"></pre></details>
-  <div class="lb2">ทะเบียนรถ และจังหวัด <i>แก้หรือพิมพ์เองได้</i></div>
-  <div class="copyRow">
-    <input type="text" id="plNum" class="bigIn" autocomplete="off" placeholder="เช่น กข 1234 นราธิวาส">
-    <button class="btn copyBtn" id="plCopy">📋 คัดลอก</button>
-  </div>
-  <div class="chk mu" id="plChk">ยังไม่มีทะเบียนรถ</div>
-  <div class="alts" id="plAlts"></div>
 </div>
 
 
@@ -2698,13 +2733,14 @@ function newCanvas(w, h) {
 }
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
-// ขนาดรูปบนจอตอนไม่ซูม: เต็มความกว้าง แต่สูงไม่เกิน 62% ของจอ
+// ขนาดรูปบนจอตอนไม่ซูม: เต็มความกว้าง แต่สูงไม่เกิน 42% ของจอ (เหลือที่ให้แถบผลลัพธ์/ปุ่มลอย)
 function fitView(kind) {
   var st = scan[kind], b = st.base;
   if (!b) { return; }
   var stage = $(kind + "Stage");
+  if (!$(kind + "Tools").clientWidth) { return; }   // การ์ดถูกซ่อนอยู่ (ค่อยจัดขนาดตอนสลับกลับมา)
   var maxW = Math.max(100, $(kind + "Tools").clientWidth - 2);
-  var maxH = Math.round(window.innerHeight * 0.62);
+  var maxH = Math.round(window.innerHeight * 0.42);
   var w = maxW, h = Math.round(maxW * b.height / b.width);
   if (h > maxH) { h = maxH; w = Math.round(maxH * b.width / b.height); }
   st.fw = w; st.fh = h;
@@ -3076,7 +3112,7 @@ function schedulePreview(kind) {
     if (!st.crop) { return; }
     var src = cropCanvas(kind, false, st.tilt, 700, "gray");
     var pv = $(kind + "Prev");
-    var maxW = Math.max(100, $(kind + "PrevWrap").clientWidth - 22), maxH = 180;
+    var maxW = Math.max(100, Math.round($(kind + "PrevWrap").clientWidth * 0.5)), maxH = 90;
     var s = Math.min(maxW / src.width, maxH / src.height);
     var dpr = Math.min(window.devicePixelRatio || 1, 3);
     pv.style.width = Math.round(src.width * s) + "px";
@@ -3541,6 +3577,22 @@ $("idRot").onclick = function () { rotatePhoto("id"); };
 $("plRot").onclick = function () { rotatePhoto("pl"); };
 setupCrop("id");
 setupCrop("pl");
+
+// ---------- สลับ บัตร / ทะเบียน (แสดงทีละใบ ไม่ต้องเลื่อนผ่านอีกใบ) ----------
+var scanKindNow = "id";
+try { if (localStorage.getItem("scanKind") === "pl") { scanKindNow = "pl"; } } catch (e) {}
+function showScanKind(k) {
+  scanKindNow = k;
+  $("cardId").style.display = (k === "id") ? "" : "none";
+  $("cardPl").style.display = (k === "pl") ? "" : "none";
+  $("chipId").classList.toggle("on", k === "id");
+  $("chipPl").classList.toggle("on", k === "pl");
+  try { localStorage.setItem("scanKind", k); } catch (e) {}
+  if (scan[k].base) { fitView(k); }
+}
+$("chipId").onclick = function () { showScanKind("id"); window.scrollTo(0, 0); };
+$("chipPl").onclick = function () { showScanKind("pl"); window.scrollTo(0, 0); };
+showScanKind(scanKindNow);
 window.addEventListener("resize", function () { fitView("id"); fitView("pl"); });
 $("idNum").addEventListener("input", function () { $("idAlts").innerHTML = ""; drawIdCheck(); update(); });
 $("plNum").addEventListener("input", function () { $("plAlts").innerHTML = ""; drawPlateCheck(); update(); });
@@ -3701,7 +3753,7 @@ function showPage(n) {
     $(id).style.display = (n === 6) ? "none" : "";
   });
   $("tab6").classList.toggle("on", n === 6);
-  if (n === 6) { loadOcr(); }   // เตรียมตัวอ่านไว้ก่อน กดสแกนแล้วจะได้เร็ว
+  if (n === 6) { loadOcr(); showScanKind(scanKindNow); }   // เตรียมตัวอ่านไว้ก่อน กดสแกนแล้วจะได้เร็ว
   $("tab1").classList.toggle("on", n === 1);
   $("tab2").classList.toggle("on", n === 2);
   $("tab3").classList.toggle("on", n === 3);
@@ -4230,7 +4282,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "7 พ.ย. 69 · รุ่นที่ 47";
+var APP_VERSION = "18 พ.ย. 69 · รุ่นที่ 48";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
