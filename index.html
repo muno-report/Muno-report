@@ -1117,6 +1117,26 @@ function redrawGroupsFor(key) {
   drawGroups("b");
 }
 
+// ลำดับยศตำรวจ (สูง -> ต่ำ) รายชื่อที่เลือกแล้วจะเรียงตามนี้เสมอ ยศสูงอยู่บน
+var RANK_ORDER = ["พล.ต.อ.", "พล.ต.ท.", "พล.ต.ต.", "พ.ต.อ.", "พ.ต.ท.", "พ.ต.ต.",
+                  "ร.ต.อ.", "ร.ต.ท.", "ร.ต.ต.", "ด.ต.", "จ.ส.ต.", "ส.ต.อ.", "ส.ต.ท.", "ส.ต.ต."];
+function rankIndexOf(id) {
+  var person = findPerson(id);
+  var n = String(person ? person.name : "").replace(/^\s*ว่าที่\s*/, "").replace(/^\s+/, "");
+  for (var i = 0; i < RANK_ORDER.length; i++) {
+    if (n.indexOf(RANK_ORDER[i]) === 0) { return i; }
+  }
+  return RANK_ORDER.length;   // ไม่รู้จักยศ = อยู่ล่างสุด
+}
+// เรียงตามยศ (ยศเท่ากัน คงลำดับเดิมที่เลือก/ที่กดเลื่อน)
+function sortChosen(key) {
+  var list = chosen[key];
+  var tagged = [];
+  for (var i = 0; i < list.length; i++) { tagged.push({ x: list[i], i: i, r: rankIndexOf(list[i].id) }); }
+  tagged.sort(function (a, b) { return (a.r - b.r) || (a.i - b.i); });
+  chosen[key] = tagged.map(function (t) { return t.x; });
+}
+
 function addPerson(key, id) {
   if (isChosen(key, id)) { toast("เลือกชื่อนี้ไปแล้ว"); return; }
   if (isChosen(otherKey(key), id)) { toast("ชื่อนี้ถูกเลือกในอีกช่องแล้ว"); return; }
@@ -1160,6 +1180,7 @@ function moveChosen(key, index, step) {
 }
 
 function drawChosen(key) {
+  sortChosen(key);
   var list = chosen[key];
   var box = $("chosen_" + key);
   box.innerHTML = "";
@@ -1206,19 +1227,24 @@ function drawChosen(key) {
       m.appendChild(pickRow);
     }
 
-    var up = document.createElement("button");
-    up.className = "btn small";
-    up.textContent = "▲";
-    up.setAttribute("data-i", i);
-    up.onclick = function () { moveChosen(key, Number(this.getAttribute("data-i")), -1); };
-    row.appendChild(up);
-
-    var down = document.createElement("button");
-    down.className = "btn small";
-    down.textContent = "▼";
-    down.setAttribute("data-i", i);
-    down.onclick = function () { moveChosen(key, Number(this.getAttribute("data-i")), 1); };
-    row.appendChild(down);
+    // ▲▼ ใช้ได้เฉพาะสลับกับคนที่ยศเท่ากัน (ข้ามยศไม่ได้ เพราะเรียงตามยศอัตโนมัติ)
+    var myRank = rankIndexOf(list[i].id);
+    if (i > 0 && rankIndexOf(list[i - 1].id) === myRank) {
+      var up = document.createElement("button");
+      up.className = "btn small";
+      up.textContent = "▲";
+      up.setAttribute("data-i", i);
+      up.onclick = function () { moveChosen(key, Number(this.getAttribute("data-i")), -1); };
+      row.appendChild(up);
+    }
+    if (i < list.length - 1 && rankIndexOf(list[i + 1].id) === myRank) {
+      var down = document.createElement("button");
+      down.className = "btn small";
+      down.textContent = "▼";
+      down.setAttribute("data-i", i);
+      down.onclick = function () { moveChosen(key, Number(this.getAttribute("data-i")), 1); };
+      row.appendChild(down);
+    }
 
     var del = document.createElement("button");
     del.className = "btn small";
@@ -1691,6 +1717,7 @@ function buildMessage1() {
 }
 
 function update() {
+  ["a", "b", "c", "d", "e"].forEach(sortChosen);   // เรียงตามยศเสมอ (ยศสูงอยู่บน)
   if (v4Chosen.length > 1) { v4Chosen = [v4Chosen[0]]; drawV4(); }   // ว.4 ได้ทีละ 1
   $("o").textContent = buildMessage();
   // ยังไม่มีรายชื่อ (เปิดครั้งแรก) = ยังไม่บันทึกทับค่าครั้งก่อน
@@ -4282,7 +4309,7 @@ for (var fk in FOLD_IDS) { setFold(fk, !!foldState[fk]); }
 
 // ================== เลขเวอร์ชัน ==================
 // แก้ไฟล์ครั้งไหน ให้เปลี่ยนตรงนี้ จะได้รู้ว่าอัปโหลดตัวใหม่สำเร็จ
-var APP_VERSION = "18 พ.ย. 69 · รุ่นที่ 49";
+var APP_VERSION = "21 พ.ย. 69 · รุ่นที่ 50";
 $("ver").textContent = "เวอร์ชัน " + APP_VERSION;
 
 // ================== เริ่มต้น ==================
